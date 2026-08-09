@@ -9,7 +9,6 @@ import {
 
 const router = Router();
 
-// Proteksi semua rute kendaraan dengan middleware autentikasi JWT
 router.use(authenticateUser);
 
 router.get("/", getAllVehicles);
