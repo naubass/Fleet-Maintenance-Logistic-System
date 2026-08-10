@@ -24,6 +24,11 @@ const routes = [
         path: 'schedules', 
         name: 'schedules', 
         component: () => import('../views/admin/SchedulesView.vue') 
+      },
+      { 
+        path: 'maintenance-records', 
+        name: 'maintenance-records', 
+        component: () => import('../views/admin/MaintenanceRecordsView.vue') 
       }
     ]
   },

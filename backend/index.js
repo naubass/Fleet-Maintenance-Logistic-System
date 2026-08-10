@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import scheduleRoutes from "./routes/ScheduleRoutes.js";
+import MaintenanceRoutes from "./routes/MaintenanceRoutes.js";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/schedules", scheduleRoutes);
+app.use("/api/maintenance-records", MaintenanceRoutes);
 
 // Check API Application
 app.get("/api/health", (req, res) => {
