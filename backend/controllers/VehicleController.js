@@ -1,44 +1,26 @@
 import { VehicleModel } from "../models/VehicleModel.js";
 
-// GET /api/vehicles - Ambil semua kendaraan
 export const getAllVehicles = async (req, res) => {
   try {
-    const data = await VehicleModel.findAll();
-    return res.status(200).json({ 
-      success: true, 
-      data 
-    });
-  } catch (err) {
-    return res.status(500).json({ 
-      success: false, 
-      message: err.message 
-    });
-  }
-};
+    const { page, limit, search, category, status } = req.query;
 
-// GET /api/vehicles/:id - Ambil detail 1 kendaraan
-export const getVehicleById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = await VehicleModel.findById(id);
-    
-    if (!data) {
-      return res.status(404).json({ success: false, message: "Kendaraan tidak ditemukan" });
-    }
+    const result = await VehicleModel.findAll({
+      page: page || 1,
+      limit: limit || 5,
+      search: search || "",
+      category: category || "all",
+      status: status || "all"
+    });
 
     return res.status(200).json({ 
       success: true, 
-      data 
+      ...result 
     });
   } catch (err) {
-    return res.status(500).json({ 
-      success: false, 
-      message: err.message 
-    });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// POST /api/vehicles - Tambah kendaraan baru
 export const createVehicles = async (req, res) => {
   try {
     const { model_name, plate_number, category, status, current_mileage } = req.body;
@@ -57,14 +39,10 @@ export const createVehicles = async (req, res) => {
       message: "Kendaraan berhasil ditambahkan" 
     });
   } catch (err) {
-    return res.status(400).json({ 
-      success: false, 
-      message: err.message 
-    });
+    return res.status(400).json({ success: false, message: err.message });
   }
 };
 
-// PUT /api/vehicles/:id - Update data kendaraan
 export const updateVehicles = async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,14 +62,10 @@ export const updateVehicles = async (req, res) => {
       message: "Kendaraan berhasil diperbarui" 
     });
   } catch (err) {
-    return res.status(400).json({ 
-      success: false, 
-      message: err.message 
-    });
+    return res.status(400).json({ success: false, message: err.message });
   }
 };
 
-// DELETE /api/vehicles/:id - Hapus kendaraan
 export const deleteVehicles = async (req, res) => {
   try {
     const { id } = req.params;
@@ -102,9 +76,6 @@ export const deleteVehicles = async (req, res) => {
       message: "Kendaraan berhasil dihapus" 
     });
   } catch (err) {
-    return res.status(400).json({ 
-      success: false, 
-      message: err.message 
-    });
+    return res.status(400).json({ success: false, message: err.message });
   }
 };

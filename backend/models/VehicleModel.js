@@ -1,28 +1,56 @@
 import { supabase } from "../config/supabaseClient.js";
 
 export const VehicleModel = {
-  // Ambil semua data
-  async findAll() {
-    const { data, error } = await supabase
+  async findAll({ page = 1, limit = 5, search = "", category = "all", status = "all" }) {
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    const from = (pageNum - 1) * limitNum;
+    const to = from + limitNum - 1;
+
+    let query = supabase
       .from("vehicles")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("*", { count: "exact" });
+
+    // Filter Kategori
+    if (category && category !== "all") {
+      query = query.ilike("category", category);
+    }
+
+    // Filter Status
+    if (status && status !== "all") {
+      query = query.eq("status", status);
+    }
+
+    // Filter Search (Model atau Plat)
+    if (search) {
+      query = query.or(`model_name.ilike.%${search}%,plate_number.ilike.%${search}%`);
+    }
+
+    const { data, count, error } = await query
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
     if (error) throw error;
-    return data;
+
+    return {
+      data: data || [],
+      totalData: count || 0,
+      totalPages: Math.ceil((count || 0) / limitNum),
+      currentPage: pageNum
+    };
   },
 
-  // Tambah data baru
   async create(payload) {
     const { data, error } = await supabase
       .from("vehicles")
       .insert([payload])
       .select()
       .single();
+
     if (error) throw error;
     return data;
   },
 
-  // Update data
   async update(id, payload) {
     const { data, error } = await supabase
       .from("vehicles")
@@ -30,16 +58,17 @@ export const VehicleModel = {
       .eq("id", id)
       .select()
       .single();
+
     if (error) throw error;
     return data;
   },
 
-  // Hapus data
   async delete(id) {
     const { error } = await supabase
       .from("vehicles")
       .delete()
       .eq("id", id);
+
     if (error) throw error;
     return true;
   }

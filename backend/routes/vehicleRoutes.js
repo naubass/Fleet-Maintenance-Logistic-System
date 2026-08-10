@@ -7,7 +7,7 @@ import {
   deleteVehicles
 } from "../controllers/VehicleController.js";
 
-const router = Router();
+const router = Router(); 
 
 router.use(authenticateUser);
 
@@ -16,4 +16,4 @@ router.post("/", createVehicles);
 router.put("/:id", updateVehicles);
 router.delete("/:id", deleteVehicles);
 
-export default router;
+export default router; 
