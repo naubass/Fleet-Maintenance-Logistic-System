@@ -12,7 +12,7 @@ const searchQuery = ref('')
 const filterCategory = ref('all')
 const filterStatus = ref('all')
 const currentPage = ref(1)
-const itemsPerPage = ref(5)
+const itemsPerPage = ref(10)
 const totalData = ref(0)
 const totalPages = ref(1)
 

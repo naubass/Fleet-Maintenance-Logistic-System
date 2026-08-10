@@ -6,7 +6,7 @@ export const getAllVehicles = async (req, res) => {
 
     const result = await VehicleModel.findAll({
       page: page || 1,
-      limit: limit || 5,
+      limit: limit || 10,
       search: search || "",
       category: category || "all",
       status: status || "all"
