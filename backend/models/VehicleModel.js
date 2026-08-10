@@ -1,7 +1,7 @@
 import { supabase } from "../config/supabaseClient.js";
 
 export const VehicleModel = {
-  async findAll({ page = 1, limit = 5, search = "", category = "all", status = "all" }) {
+  async findAll({ page = 1, limit = 10, search = "", category = "all", status = "all" }) {
     const pageNum = Number(page);
     const limitNum = Number(limit);
     const from = (pageNum - 1) * limitNum;
