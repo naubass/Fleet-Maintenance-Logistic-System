@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import scheduleRoutes from "./routes/ScheduleRoutes.js";
 import MaintenanceRoutes from "./routes/MaintenanceRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/maintenance-records", MaintenanceRoutes);
+app.use("/api/users", userRoutes);
 
 // Check API Application
 app.get("/api/health", (req, res) => {

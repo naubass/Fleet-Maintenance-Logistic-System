@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits } from 'vue'
+import { computed, onMounted, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -7,10 +7,32 @@ const emit = defineEmits(['toggle-sidebar'])
 const authStore = useAuthStore()
 const router = useRouter()
 
+// 1. Ambil nama user secara reaktif dengan fallback yang rapi
+const user = computed(() => authStore.user || {})
+
+// 2. Computed untuk Inisial Avatar (Contoh: "Naufal Najmi Kardiansyah" -> "NK")
+const userInitials = computed(() => {
+  const name = user.value.full_name
+  if (!name) return 'AD'
+  
+  const parts = name.trim().split(' ').filter(Boolean)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+})
+
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
 }
+
+// 3. Ambil data profil terbaru saat Navbar dimuat (jika method fetchUser ada di Pinia)
+onMounted(async () => {
+  if (authStore.fetchUserProfile) {
+    await authStore.fetchUserProfile()
+  }
+})
 </script>
 
 <template>
@@ -27,16 +49,18 @@ const handleLogout = () => {
     <div class="navbar-right">
       <div class="user-profile">
         <div class="avatar">
-          {{ authStore.user?.full_name ? authStore.user.full_name.substring(0, 2).toUpperCase() : 'AD' }}
+          {{ userInitials }}
         </div>
         <div class="user-info">
-          <span class="user-name">{{ authStore.user?.full_name || 'Naufal Admin' }}</span>
-          <span class="user-role">{{ authStore.user?.role || 'Admin' }}</span>
+          <span class="user-name">{{ user.full_name || 'Admin User' }}</span>
+          <span class="user-role">{{ user.role || 'Admin' }}</span>
         </div>
       </div>
 
       <button @click="handleLogout" class="btn-logout" title="Logout">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
         <span class="logout-text">Logout</span>
       </button>
     </div>

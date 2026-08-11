@@ -29,6 +29,11 @@ const routes = [
         path: 'maintenance-records', 
         name: 'maintenance-records', 
         component: () => import('../views/admin/MaintenanceRecordsView.vue') 
+      },
+      { 
+        path: 'users', 
+        name: 'users', 
+        component: () => import('../views/admin/UsersView.vue') 
       }
     ]
   },

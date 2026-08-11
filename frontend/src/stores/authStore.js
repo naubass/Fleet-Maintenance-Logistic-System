@@ -20,6 +20,35 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Fungsi untuk mengambil profil terbaru dari server backend
+  const fetchUserProfile = async () => {
+    if (!token.value) return
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token.value}`
+        }
+      })
+      const data = await res.json()
+
+      if (res.ok && data.success && data.user) {
+        user.value = data.user
+        localStorage.setItem('user', JSON.stringify(data.user))
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
+    }
+  }
+
+  // Fungsi helper untuk meng-update state user secara lokal saat diedit
+  const updateUserData = (updatedFields) => {
+    if (user.value) {
+      user.value = { ...user.value, ...updatedFields }
+      localStorage.setItem('user', JSON.stringify(user.value))
+    }
+  }
+
   const login = async (email, password) => {
     try {
       const res = await fetch('http://localhost:5000/api/auth/login', {
@@ -54,6 +83,14 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
-  // PASTI KAN initAuth JUGA DIEKSPOR DI SINI
-  return { user, token, initAuth, login, logout }
+  // EKSPOR SEMUA FUNGSI TERMASUK fetchUserProfile DAN updateUserData
+  return { 
+    user, 
+    token, 
+    initAuth, 
+    fetchUserProfile, 
+    updateUserData, 
+    login, 
+    logout 
+  }
 })
