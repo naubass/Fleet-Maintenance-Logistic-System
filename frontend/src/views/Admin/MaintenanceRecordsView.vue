@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { maintenanceService } from '../../services/maintenanceService'
+import PartUsageModal from '../../components/PartUsageModal.vue' // 1. Import Komponen Modal Part Usage
 
 const records = ref([])
 const vehicles = ref([])
@@ -8,6 +9,10 @@ const mechanics = ref([])
 const isModalOpen = ref(false)
 const isEdit = ref(false)
 const selectedId = ref(null)
+
+// State Modal Pemakaian Sparepart
+const isPartModalOpen = ref(false)
+const selectedRecordForParts = ref(null)
 
 // State Pagination & Filter Server-Side
 const searchQuery = ref('')
@@ -41,11 +46,11 @@ const loadRecords = async () => {
       status: filterStatus.value
     })
 
-    if (result.success) {
-      records.value = result.data
-      totalData.value = result.totalData
-      totalPages.value = result.totalPages
-      currentPage.value = result.currentPage
+    if (result && result.success) {
+      records.value = result.data || []
+      totalData.value = Number(result.totalData) || 0
+      totalPages.value = Number(result.totalPages) || 1
+      currentPage.value = Number(result.currentPage) || 1
     }
   } catch (err) {
     console.error('Error loading maintenance records:', err)
@@ -59,7 +64,7 @@ const loadVehicles = async () => {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     const result = await res.json()
-    if (result.success) vehicles.value = result.data
+    if (result.success) vehicles.value = result.data || []
   } catch (err) {
     console.error('Error loading vehicles:', err)
   }
@@ -72,7 +77,7 @@ const loadMechanics = async () => {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     const result = await res.json()
-    if (result.success) mechanics.value = result.data
+    if (result.success) mechanics.value = result.data || []
   } catch (err) {
     console.error('Error loading mechanics:', err)
   }
@@ -108,18 +113,24 @@ const formatStatus = (status) => {
   return map[status] || status
 }
 
-// Modal Handlers
+// Handler Modal Perbaikan (Create / Edit)
 const openModal = (item = null) => {
   if (item) {
     isEdit.value = true
     selectedId.value = item.id
+    
+    // Tentukan biaya jasa murni secara aman
+    const currentLaborCost = (item.labor_cost && item.labor_cost > 0) 
+      ? item.labor_cost 
+      : (item.total_cost || 0)
+
     form.value = {
       vehicle_id: item.vehicle_id,
       assigned_mechanic_id: item.assigned_mechanic_id || '',
       problem_description: item.problem_description || '',
       action_taken: item.action_taken || '',
       mileage_at_service: item.mileage_at_service || 0,
-      total_cost: item.total_cost || 0,
+      total_cost: currentLaborCost, // Mengisi input modal dengan biaya jasa murni
       status: item.status || 'completed',
       started_at: item.started_at ? item.started_at.split('T')[0] : getTodayDate()
     }
@@ -148,18 +159,28 @@ const handleSave = async () => {
     ? await maintenanceService.update(selectedId.value, form.value)
     : await maintenanceService.create(form.value)
 
-  if (res.success) {
+  if (res && res.success) {
     isModalOpen.value = false
     loadRecords()
   } else {
-    alert(`Gagal menyimpan: ${res.message || 'Terjadi kesalahan'}`)
+    alert(`Gagal menyimpan: ${res?.message || 'Terjadi kesalahan'}`)
   }
 }
 
 const handleDelete = async (id) => {
   if (!confirm('Hapus catatan perbaikan ini?')) return
   const res = await maintenanceService.delete(id)
-  if (res.success) loadRecords()
+  if (res && res.success) loadRecords()
+}
+
+// 2. Handler Modal Pemakaian Sparepart
+const openPartUsageModal = (record) => {
+  selectedRecordForParts.value = record
+  isPartModalOpen.value = true
+}
+
+const onPartUsageUpdated = () => {
+  loadRecords() // Refresh tabel agar total_cost terupdate otomatis
 }
 
 const changePage = (page) => {
@@ -259,7 +280,11 @@ onMounted(() => {
               </td>
               <td style="text-align: right;">
                 <div class="action-buttons">
-                  <button @click="openModal(item)" class="btn-icon edit" title="Edit">
+                  <!-- 3. Tombol Kelola Pemakaian Sparepart -->
+                  <button @click="openPartUsageModal(item)" class="btn-icon parts" title="Kelola Pemakaian Sparepart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                  </button>
+                  <button @click="openModal(item)" class="btn-icon edit" title="Edit Catatan">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
                   <button @click="handleDelete(item.id)" class="btn-icon delete" title="Hapus">
@@ -297,7 +322,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modal Form -->
+    <!-- Modal Form Catatan Perbaikan -->
     <div v-if="isModalOpen" class="modal-overlay" @click.self="isModalOpen = false">
       <div class="modal-card">
         <div class="modal-header">
@@ -352,10 +377,10 @@ onMounted(() => {
           <div class="form-group">
             <label>Status Perbaikan</label>
             <select v-model="form.status" class="custom-select">
-                <option value="pending">Menunggu (Pending)</option>
-                <option value="in_progress">Sedang Dikerjakan (In Progress)</option>
-                <option value="completed">Selesai (Completed)</option>
-                <option value="cancelled">Dibatalkan (Cancelled)</option>
+              <option value="pending">Menunggu (Pending)</option>
+              <option value="in_progress">Sedang Dikerjakan (In Progress)</option>
+              <option value="completed">Selesai (Completed)</option>
+              <option value="cancelled">Dibatalkan (Cancelled)</option>
             </select>
           </div>
 
@@ -366,6 +391,14 @@ onMounted(() => {
         </form>
       </div>
     </div>
+
+    <!-- 4. Modal Pemakaian Sparepart Component -->
+    <PartUsageModal
+      :is-open="isPartModalOpen"
+      :maintenance-record="selectedRecordForParts"
+      @close="isPartModalOpen = false"
+      @updated="onPartUsageUpdated"
+    />
   </div>
 </template>
 
@@ -411,8 +444,11 @@ onMounted(() => {
 .btn-page.active { background: #2563eb; color: #ffffff; border-color: #2563eb; }
 
 .action-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; }
-.btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; }
 .btn-icon svg { width: 16px; height: 16px; }
+
+/* Style tombol kunci pas (parts) */
+.btn-icon.parts:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
 
 .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #ffffff; border: none; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; }
 .btn-secondary { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; }
@@ -428,4 +464,7 @@ onMounted(() => {
 .form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
 .form-group input, .custom-select, .custom-textarea { padding: 0.6rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; outline: none; font-family: inherit; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+
+.empty-state { text-align: center; padding: 2.5rem !important; color: #94a3b8; }
+.page-ellipsis { padding: 0 0.35rem; color: #94a3b8; font-size: 0.85rem; }
 </style>

@@ -1,3 +1,4 @@
+import { supabase } from "../config/supabaseClient.js";
 import { MaintenanceRecordModel } from "../models/MaintenanceRecordModel.js";
 
 export const getAllRecords = async (req, res) => {
@@ -35,14 +36,17 @@ export const createRecord = async (req, res) => {
             return res.status(400).json({ success: false, message: "Armada dan deskripsi masalah harus diisi" });
         }
 
+        const inputCost = Number(total_cost) || 0;
+
         const data = await MaintenanceRecordModel.create({
             vehicle_id,
-            reported_by: req.user?.id || null, // Diambil dari token auth
+            reported_by: req.user?.id || null,
             assigned_mechanic_id: assigned_mechanic_id || null,
             problem_description,
             action_taken: action_taken || "",
             mileage_at_service: Number(mileage_at_service) || 0,
-            total_cost: Number(total_cost) || 0,
+            labor_cost: inputCost, // Simpan biaya jasa awal secara terpisah
+            total_cost: inputCost, // Saat awal buat, total_cost = labor_cost (karena belum ada sparepart)
             status: status || "completed",
             started_at: started_at || new Date().toISOString(),
             completed_at: status === "completed" ? (completed_at || new Date().toISOString()) : null
@@ -63,18 +67,35 @@ export const updateRecord = async (req, res) => {
             problem_description, 
             action_taken, 
             mileage_at_service, 
-            total_cost, 
+            total_cost,
+            labor_cost, 
             status, 
             started_at, 
             completed_at
         } = req.body;
 
+        // Hitung total spareparts aktif
+        const { data: usages } = await supabase
+            .from("part_usages")
+            .select("quantity, price_per_unit")
+            .eq("maintenance_record_id", id);
+
+        const partsTotal = (usages || []).reduce((acc, curr) => {
+            return acc + (Number(curr.quantity) * Number(curr.price_per_unit));
+        }, 0);
+
+        // Tentukan biaya jasa murni dari input form
+        const inputLaborCost = labor_cost !== undefined ? Number(labor_cost) : (Number(total_cost) || 0);
+        const grandTotal = inputLaborCost + partsTotal;
+
+        // Update data dengan labor_cost dan total_cost yang konsisten
         const data = await MaintenanceRecordModel.update(id, {
             assigned_mechanic_id: assigned_mechanic_id || null,
             problem_description,
             action_taken: action_taken || "",
             mileage_at_service: Number(mileage_at_service) || 0,
-            total_cost: Number(total_cost) || 0,
+            labor_cost: inputLaborCost, 
+            total_cost: grandTotal,     
             status: status || "completed",
             started_at: started_at || new Date().toISOString(),
             completed_at: status === "completed" ? (completed_at || new Date().toISOString()) : null

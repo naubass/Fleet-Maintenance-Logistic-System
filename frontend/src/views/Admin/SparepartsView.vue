@@ -211,11 +211,16 @@ onMounted(() => {
               <td class="font-bold-title">{{ item.name }}</td>
               <td><span class="category-badge">{{ item.category }}</span></td>
               <td>
+                <!-- Di dalam <td> kolom Stok Tersedia -->
                 <div class="stock-container">
-                    <span class="stock-amount">{{ item.stock }} {{ item.unit }}</span>
-                    <span v-if="item.stock <= item.min_stock" class="badge-low-stock">
+                  <span class="stock-amount">{{ item.stock }} {{ item.unit }}</span>
+                  
+                  <span v-if="item.stock === 0" class="badge-out-of-stock">
+                    🚫 Stok Habis
+                  </span>
+                  <span v-else-if="item.stock <= item.min_stock" class="badge-low-stock">
                     ⚠️ Stok Menipis
-                    </span>
+                  </span>
                 </div>
                 </td>
               <td class="price-text">{{ formatRupiah(item.unit_price) }}</td>
@@ -409,6 +414,19 @@ onMounted(() => {
   font-weight: 700; 
   white-space: nowrap; /* Mencegah teks tertekuk ke bawah */
   line-height: 1;
+}
+
+.badge-out-of-stock {
+  display: inline-flex;
+  align-items: center;
+  background: #450a0a;
+  color: #fca5a5;
+  border: 1px solid #991b1b;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .pagination-footer { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1.25rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }
