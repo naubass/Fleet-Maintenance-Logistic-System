@@ -65,7 +65,11 @@ export const createSparepart = async (req, res) => {
 
     // Hapus cache list default agar barang baru langsung tampil
     await invalidateCache([
-      "spareparts:list:p1:l10:sall:call"
+      "spareparts:list:p1:l10:sall:call",
+      "spareparts:list:p1:l10:s:call",
+      "spareparts:list:p1:l50:sall:call",
+      "spareparts:list:p1:l100:sall:call",
+      "dashboard:stats:summary"
     ]);
 
     return res.status(201).json({ success: true, data, message: "Sparepart berhasil ditambahkan." });
@@ -94,7 +98,8 @@ export const updateSparepart = async (req, res) => {
     // Invalidate cache list dan cache barang spesifik
     await invalidateCache([
       "spareparts:list:p1:l10:sall:call",
-      `spareparts:${id}`
+      `spareparts:${id}`,
+      "dashboard:stats:summary"
     ]);
 
     return res.status(200).json({ success: true, data, message: "Sparepart berhasil diperbarui." });
@@ -112,7 +117,8 @@ export const deleteSparepart = async (req, res) => {
     // Invalidate cache list agar barang yang terhapus langsung hilang
     await invalidateCache([
       "spareparts:list:p1:l10:sall:call",
-      `spareparts:${id}`
+      `spareparts:${id}`,
+      "dashboard:stats:summary"
     ]);
 
     return res.status(200).json({ success: true, message: "Sparepart berhasil dihapus." });

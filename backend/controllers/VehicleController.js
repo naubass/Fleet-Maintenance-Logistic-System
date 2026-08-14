@@ -43,7 +43,8 @@ export const createVehicles = async (req, res) => {
 
     // Hapus cache list default agar armada baru langsung tampil di tabel & dropdown
     await invalidateCache([
-      "vehicles:list:p1:l10:sall:call:stall"
+      "vehicles:list:p1:l10:sall:call:stall",
+      "dashboard:stats:summary"
     ]);
 
     return res.status(201).json({ 
@@ -73,7 +74,8 @@ export const updateVehicles = async (req, res) => {
     // Hapus cache data list dan cache spesifik ID kendaraan
     await invalidateCache([
       "vehicles:list:p1:l10:sall:call:stall",
-      `vehicles:${id}`
+      `vehicles:${id}`,
+      "dashboard:stats:summary"
     ]);
 
     return res.status(200).json({ 
@@ -95,7 +97,8 @@ export const deleteVehicles = async (req, res) => {
     // Hapus cache agar data yang dihapus tidak muncul dari memori cache
     await invalidateCache([
       "vehicles:list:p1:l10:sall:call:stall",
-      `vehicles:${id}`
+      `vehicles:${id}`,
+      "dashboard:stats:summary"
     ]);
 
     return res.status(200).json({ 
