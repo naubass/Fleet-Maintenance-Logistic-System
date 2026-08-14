@@ -1,16 +1,23 @@
 import { VehicleModel } from "../models/VehicleModel.js";
+import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
 
+// GET all vehicles
 export const getAllVehicles = async (req, res) => {
   try {
     const { page, limit, search, category, status } = req.query;
 
-    const result = await VehicleModel.findAll({
-      page: page || 1,
-      limit: limit || 10,
-      search: search || "",
-      category: category || "all",
-      status: status || "all"
-    });
+    // Cache key unik mencakup semua parameter filter & pagination
+    const cacheKey = `vehicles:list:p${page || 1}:l${limit || 10}:s${search || "all"}:c${category || "all"}:st${status || "all"}`;
+
+    const result = await getOrSetCache(cacheKey, async () => {
+      return await VehicleModel.findAll({
+        page: page || 1,
+        limit: limit || 10,
+        search: search || "",
+        category: category || "all",
+        status: status || "all"
+      });
+    }, 300); // Disimpan di Redis selama 300 detik / (5 menit)
 
     return res.status(200).json({ 
       success: true, 
@@ -21,6 +28,7 @@ export const getAllVehicles = async (req, res) => {
   }
 };
 
+// Create vehicle
 export const createVehicles = async (req, res) => {
   try {
     const { model_name, plate_number, category, status, current_mileage } = req.body;
@@ -33,6 +41,11 @@ export const createVehicles = async (req, res) => {
       current_mileage: Number(current_mileage) || 0
     });
 
+    // Hapus cache list default agar armada baru langsung tampil di tabel & dropdown
+    await invalidateCache([
+      "vehicles:list:p1:l10:sall:call:stall"
+    ]);
+
     return res.status(201).json({ 
       success: true, 
       data, 
@@ -43,6 +56,7 @@ export const createVehicles = async (req, res) => {
   }
 };
 
+// Update vehicle
 export const updateVehicles = async (req, res) => {
   try {
     const { id } = req.params;
@@ -56,6 +70,12 @@ export const updateVehicles = async (req, res) => {
       current_mileage: Number(current_mileage) || 0
     });
 
+    // Hapus cache data list dan cache spesifik ID kendaraan
+    await invalidateCache([
+      "vehicles:list:p1:l10:sall:call:stall",
+      `vehicles:${id}`
+    ]);
+
     return res.status(200).json({ 
       success: true, 
       data, 
@@ -66,10 +86,17 @@ export const updateVehicles = async (req, res) => {
   }
 };
 
+// Hapus vehicle
 export const deleteVehicles = async (req, res) => {
   try {
     const { id } = req.params;
     await VehicleModel.delete(id);
+
+    // Hapus cache agar data yang dihapus tidak muncul dari memori cache
+    await invalidateCache([
+      "vehicles:list:p1:l10:sall:call:stall",
+      `vehicles:${id}`
+    ]);
 
     return res.status(200).json({ 
       success: true, 

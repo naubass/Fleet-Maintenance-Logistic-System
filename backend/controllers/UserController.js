@@ -1,17 +1,22 @@
 import { UserModel } from "../models/UserModel.js";
+import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
 
-// GET /api/users
+// GET /api/users 
 export const getAllUsers = async (req, res) => {
   try {
     const { page, limit, search, role } = req.query;
-    
-    // Meneruskan 'role' ke Model
-    const result = await UserModel.findAll({
-      page: page || 1,
-      limit: limit || 10,
-      search: search || "",
-      role: role || "all"
-    });
+
+    // Cache key unik mencakup parameter pagination, search, dan filter role
+    const cacheKey = `users:list:p${page || 1}:l${limit || 10}:s${search || "all"}:r${role || "all"}`;
+
+    const result = await getOrSetCache(cacheKey, async () => {
+      return await UserModel.findAll({
+        page: page || 1,
+        limit: limit || 10,
+        search: search || "",
+        role: role || "all"
+      });
+    }, 300); // Disimpan di Redis selama 300 detik (5 menit)
 
     return res.status(200).json({ 
       success: true, 
@@ -25,7 +30,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// POST /api/users
+// POST /api/users 
 export const createUser = async (req, res) => {
   try {
     const { email, password, full_name, role, phone } = req.body;
@@ -45,6 +50,12 @@ export const createUser = async (req, res) => {
       phone
     });
 
+    // Invalidate cache list umum dan list dropdown mekanik
+    await invalidateCache([
+      "users:list:p1:l10:sall:rall",
+      "users:list:p1:l10:sall:rmechanic"
+    ]);
+
     return res.status(201).json({
       success: true,
       data,
@@ -55,7 +66,7 @@ export const createUser = async (req, res) => {
   }
 };
 
-// PUT /api/users/:id
+// PUT /api/users/:id 
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,6 +78,13 @@ export const updateUser = async (req, res) => {
 
     const data = await UserModel.update(id, { full_name, role, phone });
 
+    // Invalidate cache list dan cache user spesifik
+    await invalidateCache([
+      "users:list:p1:l10:sall:rall",
+      "users:list:p1:l10:sall:rmechanic",
+      `users:${id}`
+    ]);
+
     return res.status(200).json({
       success: true,
       data,
@@ -77,11 +95,18 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// DELETE /api/users/:id
+// DELETE /api/users/:id 
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     await UserModel.delete(id);
+
+    // Invalidate cache list agar data terhapus langsung hilang dari UI & dropdown
+    await invalidateCache([
+      "users:list:p1:l10:sall:rall",
+      "users:list:p1:l10:sall:rmechanic",
+      `users:${id}`
+    ]);
 
     return res.status(200).json({
       success: true,
