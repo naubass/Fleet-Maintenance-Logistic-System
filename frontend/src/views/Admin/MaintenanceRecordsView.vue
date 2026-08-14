@@ -17,6 +17,8 @@ const selectedRecordForParts = ref(null)
 // State Pagination & Filter Server-Side
 const searchQuery = ref('')
 const filterStatus = ref('all')
+const startDate = ref('')
+const endDate = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalData = ref(0)
@@ -43,7 +45,9 @@ const loadRecords = async () => {
       page: currentPage.value,
       limit: itemsPerPage.value,
       search: searchQuery.value,
-      status: filterStatus.value
+      status: filterStatus.value,
+      startDate: startDate.value || '',
+      endDate: endDate.value || ''
     })
 
     if (result && result.success) {
@@ -55,6 +59,12 @@ const loadRecords = async () => {
   } catch (err) {
     console.error('Error loading maintenance records:', err)
   }
+}
+
+// Reset Filter Tanggal Pengerjaan
+const clearDateFilter = () => {
+  startDate.value = ''
+  endDate.value = ''
 }
 
 // Load List Armada untuk Dropdown
@@ -85,7 +95,7 @@ const loadMechanics = async () => {
 
 // Watcher Search & Filter
 let searchTimeout = null
-watch([searchQuery, filterStatus], () => {
+watch([searchQuery, filterStatus, startDate, endDate], () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
     currentPage.value = 1
@@ -226,11 +236,29 @@ onMounted(() => {
 
     <div class="control-bar">
       <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
         <input v-model="searchQuery" type="text" placeholder="Cari armada, deskripsi, atau tindakan..." />
       </div>
 
       <div class="filter-group">
+        <!-- Filter Tanggal Pengerjaan -->
+        <div class="date-filter-box">
+          <input v-model="startDate" type="date" class="date-input" title="Tanggal Pengerjaan Awal" />
+          <span class="date-separator">s/d</span>
+          <input v-model="endDate" type="date" class="date-input" title="Tanggal Pengerjaan Akhir" />
+          <button 
+            v-if="startDate || endDate" 
+            @click="clearDateFilter" 
+            class="btn-reset-date" 
+            title="Reset Filter Tanggal"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Filter Status -->
         <select v-model="filterStatus" class="filter-select">
           <option value="all">Semua Status</option>
           <option value="completed">Selesai</option>
@@ -410,11 +438,134 @@ onMounted(() => {
 .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; }
 .page-subtitle { font-size: 0.85rem; color: #64748b; margin-top: 2px; }
 
-.control-bar { display: flex; justify-content: space-between; gap: 1rem; }
-.search-box { display: flex; align-items: center; gap: 0.625rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 0.875rem; flex: 1; max-width: 380px; height: 42px; }
-.search-box svg { width: 18px; height: 18px; color: #94a3b8; }
-.search-box input { border: none; outline: none; width: 100%; font-size: 0.875rem; background: transparent; }
-.filter-select { height: 42px; padding: 0 0.875rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; background: #ffffff; cursor: pointer; }
+.control-bar { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 1rem; 
+  width: 100%;
+}
+/* Search Box fleksibel */
+.search-box { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.625rem; 
+  background: #ffffff; 
+  border: 1px solid #cbd5e1; 
+  border-radius: 10px; 
+  padding: 0 0.875rem; 
+  flex: 1; 
+  min-width: 240px; 
+  max-width: 380px; 
+  height: 42px; 
+  box-sizing: border-box;
+}
+
+.search-box svg { 
+  width: 18px; 
+  height: 18px; 
+  color: #94a3b8; 
+  flex-shrink: 0;
+}
+
+.search-box input { 
+  border: none; 
+  outline: none; 
+  width: 100%; 
+  font-size: 0.875rem; 
+  background: transparent; 
+  color: #0f172a;
+}
+/* Group Filter Berdampingan */
+.filter-group { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.75rem; 
+  flex-shrink: 0;
+}
+
+/* Style Filter Tanggal Kalender Pengerjaan */
+.date-filter-box {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 0.625rem;
+  height: 42px;
+  box-sizing: border-box;
+}
+
+.date-input {
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: #334155;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.date-separator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  user-select: none;
+}
+
+.btn-reset-date {
+  background: #f1f5f9;
+  border: none;
+  color: #64748b;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-reset-date:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Select Status */
+.filter-select { 
+  height: 42px; 
+  padding: 0 0.875rem; 
+  border: 1px solid #cbd5e1; 
+  border-radius: 10px; 
+  font-size: 0.875rem; 
+  background: #ffffff; 
+  color: #334155;
+  outline: none;
+  cursor: pointer; 
+  box-sizing: border-box;
+}
+
+/* Responsif Mobile & Layar Kecil */
+@media (max-width: 900px) {
+  .control-bar { 
+    flex-direction: column; 
+    align-items: stretch; 
+  }
+  .search-box { 
+    max-width: 100%; 
+  }
+  .filter-group { 
+    width: 100%; 
+    flex-wrap: wrap; 
+  }
+  .date-filter-box, .filter-select { 
+    flex: 1; 
+  }
+}
 
 .card-table { background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
 .table-responsive { width: 100%; overflow-x: auto; }

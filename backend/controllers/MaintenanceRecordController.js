@@ -3,12 +3,14 @@ import { MaintenanceRecordModel } from "../models/MaintenanceRecordModel.js";
 
 export const getAllRecords = async (req, res) => {
     try {
-        const { page, limit, search, status } = req.query;
+        const { page, limit, search, status, startDate, endDate, start_date, end_date } = req.query;
         const result = await MaintenanceRecordModel.findAll({
             page: page || 1,
             limit: limit || 10,
             search: search || "",
-            status: status || "all"
+            status: status || "all",
+            startDate: startDate || start_date || "",
+            endDate: endDate || end_date || ""
         });
         
         return res.status(200).json({ success: true, ...result });

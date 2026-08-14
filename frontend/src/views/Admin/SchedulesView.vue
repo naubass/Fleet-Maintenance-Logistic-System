@@ -11,6 +11,8 @@ const selectedId = ref(null)
 // State Filter & Server-Side Pagination
 const searchQuery = ref('')
 const filterStatus = ref('all')
+const startDate = ref('')
+const endDate = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalData = ref(0)
@@ -38,18 +40,26 @@ const loadSchedules = async () => {
       page: currentPage.value,
       limit: itemsPerPage.value,
       search: searchQuery.value,
-      status: filterStatus.value
+      status: filterStatus.value,
+      startDate: startDate.value || '', // Gunakan startDate (bukan start_date)
+      endDate: endDate.value || ''       // Gunakan endDate (bukan end_date)
     })
 
-    if (result.success) {
-      schedules.value = result.data
-      totalData.value = result.totalData
-      totalPages.value = result.totalPages
-      currentPage.value = result.currentPage
+    if (result && result.success) {
+      schedules.value = result.data || []
+      totalData.value = Number(result.totalData) || 0
+      totalPages.value = Number(result.totalPages) || 1
+      currentPage.value = Number(result.currentPage) || 1
     }
   } catch (err) {
     console.error('Error loading schedules:', err)
   }
+}
+
+// Reset Filter Tanggal
+const clearDateFilter = () => {
+  startDate.value = ''
+  endDate.value = ''
 }
 
 // Fetch List Armada untuk Dropdown
@@ -69,7 +79,7 @@ const loadVehicles = async () => {
 
 // Debounce Real-time Search & Filter Watcher
 let searchTimeout = null
-watch([searchQuery, filterStatus], () => {
+watch([searchQuery, filterStatus, startDate, endDate], () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
     currentPage.value = 1
@@ -208,12 +218,28 @@ onMounted(() => {
       </div>
 
       <div class="filter-group">
+        <!-- Filter Tanggal Jatuh Tempo -->
+        <div class="date-filter-box">
+          <input v-model="startDate" type="date" class="date-input" title="Tanggal Awal" />
+          <span class="date-separator">s/d</span>
+          <input v-model="endDate" type="date" class="date-input" title="Tanggal Akhir" />
+          <button 
+            v-if="startDate || endDate" 
+            @click="clearDateFilter" 
+            class="btn-reset-date" 
+            title="Reset Filter Tanggal"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Filter Status -->
         <select v-model="filterStatus" class="filter-select">
-            <option value="all">Semua Status</option>
-            <option value="scheduled">Dijadwalkan</option>
-            <option value="due">Mendekati Tempo</option>
-            <option value="overdue">Terlambat</option>
-            <option value="completed">Selesai</option>
+          <option value="all">Semua Status</option>
+          <option value="scheduled">Dijadwalkan</option>
+          <option value="due">Mendekati Tempo</option>
+          <option value="overdue">Terlambat</option>
+          <option value="completed">Selesai</option>
         </select>
       </div>
     </div>
@@ -445,6 +471,54 @@ onMounted(() => {
   color: #334155;
   outline: none;
   cursor: pointer;
+}
+
+/* Style Filter Tanggal Kalender */
+.date-filter-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 0.625rem;
+  height: 42px;
+  box-sizing: border-box;
+}
+
+.date-input {
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: #334155;
+  background: transparent;
+  cursor: pointer;
+}
+
+.date-separator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.btn-reset-date {
+  background: #f1f5f9;
+  border: none;
+  color: #64748b;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-reset-date:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 /* Table UI */

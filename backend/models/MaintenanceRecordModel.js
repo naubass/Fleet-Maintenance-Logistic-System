@@ -1,7 +1,7 @@
 import { supabase } from "../config/supabaseClient.js";
 
 export const MaintenanceRecordModel = {
-    async findAll({ page = 1, limit = 10, search = "", status = "all" }) {
+    async findAll({ page = 1, limit = 10, search = "", status = "all", startDate = "", endDate = "" }) {
         const pageNum = Number(page);
         const limitNum = Number(limit);
         const from = (pageNum - 1) * limitNum;
@@ -19,6 +19,14 @@ export const MaintenanceRecordModel = {
         // Filter status
         if (status && status !== "all") {
             query = query.eq("status", status);
+        }
+
+        // Filter tanggal jatuh tempo
+        if (startDate) {
+            query = query.gte("started_at", startDate);
+        }
+        if (endDate) {
+            query = query.lte("started_at", `${endDate}T23:59:59`);
         }
 
         // Filter search yang diperbaiki untuk relasi Supabase

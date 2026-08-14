@@ -2,12 +2,14 @@ import { ScheduleModel } from "../models/ScheduleModel.js";
 
 export const getAllSchedules = async (req, res) => {
     try {
-        const { page, limit, search, status } = req.query;
+        const { page, limit, search, status, startDate, endDate } = req.query;
         const result = await ScheduleModel.findAll({
             page: page || 1,
             limit: limit || 10,
             search: search || "",
-            status: status || "all"
+            status: status || "all",
+            startDate: startDate || "",
+            endDate: endDate || ""
         });
 
         return res.status(200).json({ success: true, ...result });

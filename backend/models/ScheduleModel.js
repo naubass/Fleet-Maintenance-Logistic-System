@@ -1,7 +1,7 @@
 import { supabase } from "../config/supabaseClient.js";
 
 export const ScheduleModel = {
-    async findAll({ page = 1, limit = 10, search = "", status = "all" }) {
+    async findAll({ page = 1, limit = 10, search = "", status = "all", startDate = "", endDate = "" }) {
         const pageNum = Number(page);
         const limitNum = Number(limit);
         const from = (pageNum - 1) * limitNum;
@@ -19,11 +19,30 @@ export const ScheduleModel = {
         query = query.eq("status", status);
         }
 
+        // Filter tanggal jatuh tempo
+        if (startDate) {
+            query = query.gte("next_due_date", startDate);
+        }
+        if (endDate) {
+            query = query.lte("next_due_date", `${endDate}T23:59:59`);
+        }
+
         // Filter search yang diperbaiki untuk relasi Supabase
         if (search) {
-        query = query.or(
-            `service_type.ilike.%${search}%,vehicles.model_name.ilike.%${search}%,vehicles.plate_number.ilike.%${search}%`
-        );
+            const { data: vehicleMatch } = await supabase
+                .from("vehicles")
+                .select("id")
+                .or(`model_name.ilike.%${search}%,plate_number.ilike.%${search}%`);
+
+            const vehicleIds = (vehicleMatch || []).map((v) => v.id);
+
+            if (vehicleIds.length > 0) {
+                query = query.or(
+                    `service_type.ilike.%${search}%,vehicle_id.in.(${vehicleIds.join(",")})`
+                );
+            } else {
+                query = query.ilike("service_type", `%${search}%`);
+            }
         }
 
         const { data, count, error } = await query
