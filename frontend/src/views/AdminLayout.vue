@@ -29,7 +29,7 @@ const toggleSidebar = () => {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f4faf6;
   font-family: 'Plus Jakarta Sans', sans-serif;
   overflow-x: hidden;
 }

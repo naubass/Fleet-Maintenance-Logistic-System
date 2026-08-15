@@ -135,6 +135,13 @@ const formatRole = (role) => {
   return map[role] || role
 }
 
+const getInitials = (name) => {
+  if (!name) return '?'
+  const parts = name.trim().split(' ').filter(Boolean)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
+}
+
 const visiblePages = computed(() => {
   const total = totalPages.value
   const current = currentPage.value
@@ -197,7 +204,12 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-for="item in users" :key="item.id">
-              <td class="font-bold-title">{{ item.full_name || '-' }}</td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">{{ getInitials(item.full_name) }}</div>
+                  <span class="font-bold-title">{{ item.full_name || '-' }}</span>
+                </div>
+              </td>
               <td>
                 <span :class="`badge badge-${item.role}`">
                   <span class="badge-dot"></span>
@@ -302,12 +314,13 @@ onMounted(() => {
 .page-subtitle { font-size: 0.85rem; color: #64748b; margin-top: 2px; }
 
 .control-bar { display: flex; justify-content: space-between; gap: 1rem; }
-.search-box { display: flex; align-items: center; gap: 0.625rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 0.875rem; flex: 1; max-width: 380px; height: 42px; }
+.search-box { display: flex; align-items: center; gap: 0.625rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 0.875rem; flex: 1; max-width: 380px; height: 42px; transition: border-color 0.2s, box-shadow 0.2s; }
+.search-box:focus-within { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12); }
 .search-box svg { width: 18px; height: 18px; color: #94a3b8; }
 .search-box input { border: none; outline: none; width: 100%; font-size: 0.875rem; background: transparent; }
 .filter-select { height: 42px; padding: 0 0.875rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; background: #ffffff; cursor: pointer; }
 
-.card-table { background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+.card-table { background: #ffffff; border-radius: 16px; border: 1px solid #e6f4ea; box-shadow: 0 1px 3px rgba(15, 61, 46, 0.05); overflow: hidden; }
 .table-responsive { width: 100%; overflow-x: auto; }
 .custom-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
 .custom-table th { background: #f8fafc; padding: 0.875rem 1.25rem; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
@@ -316,23 +329,41 @@ onMounted(() => {
 .font-bold-title { font-weight: 600; color: #0f172a; }
 .id-text { font-family: monospace; font-size: 0.8rem; color: #64748b; }
 
+.user-cell { display: flex; align-items: center; gap: 0.75rem; }
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
 .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
 .badge-admin { background: #fef3c7; color: #b45309; } .badge-admin .badge-dot { background: #d97706; }
-.badge-mechanic { background: #e0f2fe; color: #0369a1; } .badge-mechanic .badge-dot { background: #0284c7; }
+.badge-mechanic { background: #ccfbf1; color: #0f766e; } .badge-mechanic .badge-dot { background: #0d9488; }
 .badge-manager { background: #f3e8ff; color: #6b21a8; } .badge-manager .badge-dot { background: #9333ea; }
 
 .pagination-footer { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1.25rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }
 .pagination-info { font-size: 0.825rem; color: #64748b; }
 .pagination-buttons { display: flex; gap: 0.25rem; }
 .btn-page { min-width: 32px; height: 32px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; font-size: 0.825rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-.btn-page.active { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+.btn-page.active { background: #16a34a; color: #ffffff; border-color: #16a34a; }
 
 .action-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; }
-.btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; }
 .btn-icon svg { width: 16px; height: 16px; }
+.btn-icon.edit:hover { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+.btn-icon.delete:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
 
-.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #ffffff; border: none; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #16a34a; color: #ffffff; border: none; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.btn-primary:hover { background: #15803d; }
 .btn-secondary { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
@@ -352,10 +383,11 @@ onMounted(() => {
   font-size: 0.875rem; 
   color: #0f172a;
   outline: none; 
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-group input:focus, .custom-select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
 }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
 

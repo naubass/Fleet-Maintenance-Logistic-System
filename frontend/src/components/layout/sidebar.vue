@@ -39,6 +39,8 @@ const handleNavClick = () => {
     </div>
 
     <nav class="sidebar-nav">
+      <span class="nav-section-label">Menu Utama</span>
+
       <router-link to="/admin/dashboard" class="nav-item" @click="handleNavClick">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -69,6 +71,8 @@ const handleNavClick = () => {
         <span>Suku Cadang</span>
       </router-link>
 
+      <span class="nav-section-label">Administrasi</span>
+
       <router-link to="/admin/users" class="nav-item" @click="handleNavClick">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -84,9 +88,9 @@ const handleNavClick = () => {
 
 <style scoped>
 .sidebar {
-  width: 260px;
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
+  width: 264px;
+  background: linear-gradient(180deg, #0e3a2c 0%, #0a2e22 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -95,7 +99,7 @@ const handleNavClick = () => {
 }
 
 .sidebar.is-closed {
-  margin-left: -260px;
+  margin-left: -264px;
 }
 
 .sidebar-brand {
@@ -104,28 +108,29 @@ const handleNavClick = () => {
   align-items: center;
   gap: 0.875rem;
   padding: 0 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .brand-logo {
   width: 38px;
   height: 38px;
-  background: #2563eb;
-  color: white;
+  background: #22c55e;
+  color: #0a2e22;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
 }
 .brand-logo svg { width: 22px; height: 22px; }
-.brand-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+.brand-title { font-size: 1.2rem; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; }
 
 .btn-close-mobile {
   display: none;
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   margin-left: auto;
 }
@@ -134,24 +139,38 @@ const handleNavClick = () => {
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
+
+.nav-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.75rem 1rem 0.4rem;
+}
+.nav-section-label:first-child { padding-top: 0.25rem; }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: #64748b;
+  padding: 0.7rem 1rem;
+  color: rgba(255, 255, 255, 0.65);
   font-weight: 600;
   font-size: 0.9rem;
   border-radius: 10px;
   text-decoration: none;
   transition: all 0.2s;
 }
-.nav-item svg { width: 20px; height: 20px; }
-.nav-item:hover { background: #f1f5f9; color: #0f172a; }
-.nav-item.router-link-active { background: #eff6ff; color: #2563eb; }
+.nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+.nav-item:hover { background: rgba(255, 255, 255, 0.06); color: #ffffff; }
+.nav-item.router-link-active {
+  background: #22c55e;
+  color: #0a2e22;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
 
 @media (max-width: 768px) {
   .sidebar {
@@ -161,7 +180,7 @@ const handleNavClick = () => {
     left: 0;
     margin-left: 0;
     transform: translateX(-100%);
-    box-shadow: 10px 0 25px rgba(0,0,0,0.1);
+    box-shadow: 10px 0 25px rgba(0,0,0,0.25);
   }
   .sidebar:not(.is-closed) {
     transform: translateX(0);

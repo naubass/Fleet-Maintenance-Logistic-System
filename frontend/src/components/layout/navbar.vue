@@ -7,10 +7,10 @@ const emit = defineEmits(['toggle-sidebar'])
 const authStore = useAuthStore()
 const router = useRouter()
 
-// 1. Ambil nama user secara reaktif dengan fallback yang rapi
+// Ambil nama user secara reaktif dengan fallback yang rapi
 const user = computed(() => authStore.user || {})
 
-// 2. Computed untuk Inisial Avatar (Contoh: "Naufal Najmi Kardiansyah" -> "NK")
+// Computed untuk Inisial Avatar (Contoh: "Naufal Najmi Kardiansyah" -> "NK")
 const userInitials = computed(() => {
   const name = user.value.full_name
   if (!name) return 'AD'
@@ -27,7 +27,7 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-// 3. Ambil data profil terbaru saat Navbar dimuat (jika method fetchUser ada di Pinia)
+// Ambil data profil terbaru saat Navbar dimuat (jika method fetchUser ada di Pinia)
 onMounted(async () => {
   if (authStore.fetchUserProfile) {
     await authStore.fetchUserProfile()
@@ -82,17 +82,17 @@ onMounted(async () => {
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: white;
+  border: 1px solid #d1e7dd;
+  background: #f0fdf6;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #334155;
+  color: #0f3d2e;
   transition: all 0.2s;
 }
 .btn-toggle svg { width: 20px; height: 20px; }
-.btn-toggle:hover { background: #f1f5f9; color: #2563eb; }
+.btn-toggle:hover { background: #dcfce7; color: #15803d; }
 
 .navbar-right {
   display: flex;
@@ -109,8 +109,8 @@ onMounted(async () => {
 .avatar {
   width: 38px;
   height: 38px;
-  background: #fef08a;
-  color: #854d0e;
+  background: #dcfce7;
+  color: #166534;
   font-weight: 700;
   font-size: 0.85rem;
   border-radius: 50%;

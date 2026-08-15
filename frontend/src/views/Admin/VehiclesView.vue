@@ -348,6 +348,12 @@ onMounted(loadVehicles)
   max-width: 380px;
   height: 42px;
   box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box:focus-within {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
 }
 
 /* Kunci Ukuran SVG Kaca Pembesar */
@@ -390,8 +396,8 @@ onMounted(loadVehicles)
 .card-table {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e6f4ea;
+  box-shadow: 0 1px 3px rgba(15, 61, 46, 0.05);
   overflow: hidden;
 }
 
@@ -452,7 +458,7 @@ onMounted(loadVehicles)
 
 .due-badge {
   font-weight: 700;
-  color: #2563eb;
+  color: #15803d;
 }
 
 /* Status Badges */
@@ -478,8 +484,8 @@ onMounted(loadVehicles)
 .badge-ready, .badge-completed { background: #dcfce7; color: #15803d; }
 .badge-ready .badge-dot, .badge-completed .badge-dot { background: #16a34a; }
 
-.badge-in_use, .badge-pending { background: #e0f2fe; color: #0369a1; }
-.badge-in_use .badge-dot, .badge-pending .badge-dot { background: #0284c7; }
+.badge-in_use, .badge-pending { background: #ccfbf1; color: #0f766e; }
+.badge-in_use .badge-dot, .badge-pending .badge-dot { background: #0d9488; }
 
 .badge-under_maintenance { background: #fef9c3; color: #a16207; }
 .badge-under_maintenance .badge-dot { background: #d97706; }
@@ -516,14 +522,14 @@ onMounted(loadVehicles)
   flex-shrink: 0;
 }
 
-.btn-icon.edit:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.btn-icon.edit:hover { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
 .btn-icon.delete:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 
 .btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #2563eb;
+  background: #16a34a;
   color: #ffffff;
   border: none;
   padding: 0 1.25rem;
@@ -541,7 +547,7 @@ onMounted(loadVehicles)
   flex-shrink: 0;
 }
 
-.btn-primary:hover { background: #1d4ed8; }
+.btn-primary:hover { background: #15803d; }
 
 .btn-secondary {
   background: #ffffff;
@@ -598,7 +604,7 @@ onMounted(loadVehicles)
 .btn-page.icon-btn { font-size: 1rem; color: #64748b; }
 .btn-page:hover:not(:disabled) { background: #f1f5f9; color: #0f172a; border-color: #94a3b8; }
 .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-page.active { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+.btn-page.active { background: #16a34a; color: #ffffff; border-color: #16a34a; }
 .page-ellipsis { padding: 0 0.35rem; color: #94a3b8; font-size: 0.85rem; }
 
 /* Modal Form UI */
@@ -645,6 +651,12 @@ onMounted(loadVehicles)
   font-size: 0.875rem;
   color: #0f172a;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus, .custom-select:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
 }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }

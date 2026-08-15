@@ -459,6 +459,12 @@ onMounted(() => {
   max-width: 380px; 
   height: 42px; 
   box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box:focus-within {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
 }
 
 .search-box svg { 
@@ -495,6 +501,12 @@ onMounted(() => {
   padding: 0 0.625rem;
   height: 42px;
   box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.date-filter-box:focus-within {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
 }
 
 .date-input {
@@ -567,7 +579,7 @@ onMounted(() => {
   }
 }
 
-.card-table { background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+.card-table { background: #ffffff; border-radius: 16px; border: 1px solid #e6f4ea; box-shadow: 0 1px 3px rgba(15, 61, 46, 0.05); overflow: hidden; }
 .table-responsive { width: 100%; overflow-x: auto; }
 .custom-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
 .custom-table th { background: #f8fafc; padding: 0.875rem 1.25rem; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
@@ -576,7 +588,7 @@ onMounted(() => {
 .vehicle-info { display: flex; flex-direction: column; gap: 0.25rem; }
 .font-bold-title { font-weight: 600; color: #0f172a; }
 .plate-badge { background: #f1f5f9; color: #334155; padding: 0.2rem 0.5rem; border-radius: 6px; font-family: monospace; font-weight: 600; font-size: 0.8rem; border: 1px solid #cbd5e1; width: fit-content; }
-.cost-text { font-weight: 700; color: #059669; }
+.cost-text { font-weight: 700; color: #15803d; }
 
 .cell-stack { display: flex; flex-direction: column; gap: 0.15rem; }
 .sub-date { font-size: 0.75rem; color: #64748b; }
@@ -585,23 +597,25 @@ onMounted(() => {
 .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
 .badge-completed { background: #dcfce7; color: #15803d; } .badge-completed .badge-dot { background: #16a34a; }
 .badge-in_progress { background: #fef3c7; color: #b45309; } .badge-in_progress .badge-dot { background: #d97706; }
-.badge-pending { background: #e0f2fe; color: #0369a1; } .badge-pending .badge-dot { background: #0284c7; }
+.badge-pending { background: #ccfbf1; color: #0f766e; } .badge-pending .badge-dot { background: #0d9488; }
 .badge-cancelled { background: #fee2e2; color: #b91c1c; } .badge-cancelled .badge-dot { background: #dc2626; }
 
 .pagination-footer { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1.25rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }
 .pagination-info { font-size: 0.825rem; color: #64748b; }
 .pagination-buttons { display: flex; gap: 0.25rem; }
 .btn-page { min-width: 32px; height: 32px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; font-size: 0.825rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-.btn-page.active { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+.btn-page.active { background: #16a34a; color: #ffffff; border-color: #16a34a; }
 
 .action-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; }
 .btn-icon svg { width: 16px; height: 16px; }
 
 /* Style tombol kunci pas (parts) */
-.btn-icon.parts:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+.btn-icon.parts:hover { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+.btn-icon.edit:hover { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
 
-.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #ffffff; border: none; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #16a34a; color: #ffffff; border: none; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.btn-primary:hover { background: #15803d; }
 .btn-secondary { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 0 1.25rem; height: 42px; border-radius: 10px; font-weight: 600; cursor: pointer; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
@@ -613,7 +627,8 @@ onMounted(() => {
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 0.375rem; }
 .form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
-.form-group input, .custom-select, .custom-textarea { padding: 0.6rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; outline: none; font-family: inherit; }
+.form-group input, .custom-select, .custom-textarea { padding: 0.6rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; outline: none; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; }
+.form-group input:focus, .custom-select:focus, .custom-textarea:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
 
 .empty-state { text-align: center; padding: 2.5rem !important; color: #94a3b8; }

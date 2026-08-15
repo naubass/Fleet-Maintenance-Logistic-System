@@ -77,7 +77,7 @@ const renderChart = () => {
       datasets: [
         {
           data: [ready, inMaintenance, other],
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          backgroundColor: ['#16a34a', '#84cc16', '#facc15'],
           borderWidth: 0,
           hoverOffset: 4
         }
@@ -119,12 +119,18 @@ onMounted(() => {
           <router-link to="/admin/schedules" class="btn-secondary">Jadwal Servis</router-link>
         </div>
       </div>
+      <div class="welcome-decor" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+          <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1h2m4 0h1a1 1 0 001-1v-4a1 1 0 00-.293-.707l-3-3A1 1 0 0016.586 7H13"/>
+        </svg>
+      </div>
     </div>
 
     <!-- Stat Cards Grid -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon bg-blue">🚗</div>
+        <div class="stat-icon bg-green">🚗</div>
         <div class="stat-details">
           <span class="stat-label">Total Armada</span>
           <h3 class="stat-value">{{ stats.summary.totalVehicles }} <span class="unit">Unit</span></h3>
@@ -220,25 +226,27 @@ onMounted(() => {
 }
 
 .welcome-card {
-  background-color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0e3a2c 0%, #15803d 100%);
   padding: 2rem;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 24px rgba(14, 58, 44, 0.18);
 }
 
 .welcome-text h2 {
   font-size: 1.65rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
 
 .welcome-text p {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.95rem;
   margin-bottom: 1.5rem;
+  max-width: 480px;
 }
 
 .welcome-actions {
@@ -251,36 +259,44 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 0.625rem 1.25rem;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: #22c55e;
+  color: #0a2e22;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.875rem;
   text-decoration: none;
   transition: background-color 0.2s;
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: #4ade80;
 }
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   padding: 0.625rem 1.25rem;
-  background-color: #ffffff;
-  color: #475569;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.875rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   text-decoration: none;
   transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background-color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.18);
 }
+
+.welcome-decor {
+  position: absolute;
+  right: -1rem;
+  bottom: -1.5rem;
+  color: rgba(255, 255, 255, 0.08);
+}
+.welcome-decor svg { width: 180px; height: 180px; }
 
 /* Stats Grid */
 .stats-grid {
@@ -293,11 +309,16 @@ onMounted(() => {
   background: #ffffff;
   padding: 1.25rem;
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e6f4ea;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(15, 61, 46, 0.04);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.stat-card:hover {
+  box-shadow: 0 6px 16px rgba(15, 61, 46, 0.08);
+  transform: translateY(-2px);
 }
 
 .stat-icon {
@@ -310,10 +331,10 @@ onMounted(() => {
   font-size: 1.35rem;
 }
 
-.bg-blue { background-color: #eff6ff; }
-.bg-emerald { background-color: #ecfdf5; }
-.bg-amber { background-color: #fffbeb; }
-.bg-rose { background-color: #fff1f2; }
+.bg-green { background-color: #dcfce7; }
+.bg-emerald { background-color: #d1fae5; }
+.bg-amber { background-color: #fef3c7; }
+.bg-rose { background-color: #ffe4e6; }
 
 .stat-details {
   display: flex;
@@ -361,9 +382,9 @@ onMounted(() => {
 .card {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e6f4ea;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(15, 61, 46, 0.04);
 }
 
 .card-header {
@@ -382,8 +403,8 @@ onMounted(() => {
 .badge {
   font-size: 0.72rem;
   padding: 0.2rem 0.5rem;
-  background-color: #ecfdf5;
-  color: #059669;
+  background-color: #dcfce7;
+  color: #15803d;
   border-radius: 6px;
   font-weight: 600;
 }
@@ -391,11 +412,14 @@ onMounted(() => {
 .chart-container {
   height: 250px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .link-more {
   font-size: 0.82rem;
-  color: #2563eb;
+  color: #15803d;
   text-decoration: none;
   font-weight: 600;
 }
@@ -428,14 +452,6 @@ onMounted(() => {
 
 .text-center { text-align: center; }
 .text-muted { color: #94a3b8; }
-
-.chart-container {
-  height: 250px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .chart-center-label {
   position: absolute;
