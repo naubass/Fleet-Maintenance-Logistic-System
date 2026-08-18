@@ -2,12 +2,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import AdminLayout from '../views/AdminLayout.vue'
 import ManagerLayout from '../components/layout/ManagerLayout.vue'
+import MechanicLayout from '../components/layout/MechanicLayout.vue'
 
-// Import langsung views Manager (agar tidak silent fail jika path salah)
+// Views Manager
 import ManagerDashboardView from '../views/Manager/ManagerDashboardView.vue'
 import ManagerVehiclesView from '../views/Manager/ManagerVehiclesView.vue'
 import ManagerSchedulesView from '../views/Manager/ManagerSchedulesView.vue'
 import ManagerRecordsView from '../views/Manager/ManagerRecordsView.vue'
+
+// Views Mechanic
+import MechanicDashboardView from '../views/Mechanic/MechanicDashboardView.vue'
+import MechanicRecordsView from '../views/Mechanic/MechanicRecordsView.vue'
 
 const routes = [
   { 
@@ -99,6 +104,27 @@ const routes = [
     ]
   },
 
+  // Portal Mechanic
+  {
+    path: '/mechanic',
+    component: MechanicLayout,
+    meta: { requiresAuth: true, role: 'mechanic' },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'mechanic-dashboard',
+        component: MechanicDashboardView,
+        meta: { title: 'Bengkel & Tugas Saya | RawatArmada' }
+      },
+      {
+        path: 'records',
+        name: 'mechanic-records',
+        component: MechanicRecordsView,
+        meta: { title: 'Riwayat Tugas Servis | RawatArmada' }
+      }
+    ]
+  },
+
   { 
     path: '/:pathMatch(.*)*', 
     redirect: '/login'
@@ -110,7 +136,7 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guard yang Ringkas & Stabil
+// Navigation Guard Anti-Loop & Presisi 3 Role
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   let user = null
@@ -123,22 +149,31 @@ router.beforeEach((to, from, next) => {
 
   const isAuthRequired = to.matched.some(r => r.meta.requiresAuth)
 
-  // 1. Belum login mencoba akses route tertutup
+  // Belum login
   if (isAuthRequired && !token) {
     return next('/login')
   }
 
-  // 2. Sudah login mencoba buka /login
+  // Sudah login tapi buka /login
   if (to.path === '/login' && token) {
     if (userRole === 'manager') return next('/manager/dashboard')
+    if (userRole === 'mechanic') return next('/mechanic/dashboard')
     return next('/admin/dashboard')
   }
 
-  // 3. Batasi akses role: Manager dilarang buka /admin, Admin dilarang buka /manager
-  if (to.path.startsWith('/admin') && userRole === 'manager') {
-    return next('/manager/dashboard')
+  // Batasi akses antar portal role
+  if (to.path.startsWith('/admin') && userRole !== 'admin') {
+    if (userRole === 'manager') return next('/manager/dashboard')
+    if (userRole === 'mechanic') return next('/mechanic/dashboard')
   }
-  if (to.path.startsWith('/manager') && userRole === 'admin') {
+
+  if (to.path.startsWith('/manager') && userRole !== 'manager') {
+    if (userRole === 'mechanic') return next('/mechanic/dashboard')
+    return next('/admin/dashboard')
+  }
+
+  if (to.path.startsWith('/mechanic') && userRole !== 'mechanic') {
+    if (userRole === 'manager') return next('/manager/dashboard')
     return next('/admin/dashboard')
   }
 

@@ -23,11 +23,15 @@ const handleLogin = async () => {
     
     if (userRole === 'manager') {
       router.push('/manager/dashboard')
-    } else {
+    } else if (userRole === 'mechanic') {
+      router.push('/mechanic/dashboard')
+    } else if (userRole === 'admin') {
       router.push('/admin/dashboard')
+    } else {
+      errorMessage.value = 'Peran akun tidak dikenali di sistem.'
     }
   } else {
-    errorMessage.value = res.message
+    errorMessage.value = res.message || 'Gagal masuk ke akun.'
   }
 }
 </script>

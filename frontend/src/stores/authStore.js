@@ -63,10 +63,10 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = data.token || data.data?.token || ''
       localStorage.setItem('token', token.value)
 
-      // 1. Ambil profil lengkap dari /api/auth/me agar role pasti terisi
+      // Ambil profil lengkap dari /api/auth/me agar role pasti terisi
       await fetchUserProfile()
 
-      // 2. Kembalikan data user lengkap dengan role
+      // Kembalikan data user lengkap dengan role
       return { success: true, user: user.value }
     } else {
       return { success: false, message: data.message || 'Login gagal.' }
