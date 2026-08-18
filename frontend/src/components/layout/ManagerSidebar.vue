@@ -1,0 +1,212 @@
+<script setup>
+import { defineProps, defineEmits } from 'vue'
+
+const props = defineProps({
+  isOpen: Boolean
+})
+
+const emit = defineEmits(['close'])
+
+const closeSidebar = () => {
+  emit('close')
+}
+
+// Tutup sidebar otomatis HANYA jika berada di layar mobile (<= 768px)
+const handleNavClick = () => {
+  if (window.innerWidth <= 768) {
+    closeSidebar()
+  }
+}
+</script>
+
+<template>
+  <!-- Overlay Backdrop Khusus Mobile -->
+  <div 
+    v-if="isOpen" 
+    class="sidebar-overlay" 
+    @click="closeSidebar"
+  ></div>
+
+  <aside :class="['sidebar', { 'is-closed': !isOpen }]">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 17.5V14M19 14C20.1046 14 21 13.1046 21 12V6C21 4.89543 20.1046 4 19 4H5C3.89543 4 3 4.89543 3 6V18C3 19.1046 3.89543 20 5 20H13.5M19 14H15.5M13 10V6M9 10V6M5 10V6M5 10C5 11.1046 5.89543 12 7 12H9C10.1046 12 11 11.1046 11 10M11 10C11 11.8954 12 13 13 12H15C16.1046 12 17 11.1046 17 10V6M19 17.5L21.5 20M19 17.5L16.5 20"/>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <h2 class="brand-title">RawatArmada</h2>
+        <span class="role-tag">Executive Portal</span>
+      </div>
+      <button @click="closeSidebar" class="btn-close-mobile">&times;</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Analitik & Keputusan</span>
+
+      <router-link to="/manager/dashboard" class="nav-item" @click="handleNavClick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+        <span>Cost & Fleet Analytics</span>
+      </router-link>
+
+      <span class="nav-section-label">Monitoring Operasional</span>
+
+      <router-link to="/manager/vehicles" class="nav-item" @click="handleNavClick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+          <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1h2m4 0h1a1 1 0 001-1v-4a1 1 0 00-.293-.707l-3-3A1 1 0 0016.586 7H13"/>
+        </svg>
+        <span>Kesiapan Armada</span>
+      </router-link>
+
+      <router-link to="/manager/schedules" class="nav-item" @click="handleNavClick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span>Jadwal & Approval</span>
+      </router-link>
+
+      <router-link to="/manager/maintenance-records" class="nav-item" @click="handleNavClick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 5v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
+          <path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+        <span>Rekap Pengeluaran</span>
+      </router-link>
+    </nav>
+  </aside>
+</template>
+
+<style scoped>
+.sidebar {
+  width: 264px;
+  background: linear-gradient(180deg, #0e3a2c 0%, #0a2e22 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 40;
+  flex-shrink: 0;
+}
+
+.sidebar.is-closed {
+  margin-left: -264px;
+}
+
+.sidebar-brand {
+  height: 75px;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  background: #22c55e;
+  color: #0a2e22;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+}
+.brand-logo svg { width: 22px; height: 22px; }
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title { 
+  font-size: 1.15rem; 
+  font-weight: 700; 
+  color: #ffffff; 
+  letter-spacing: -0.01em; 
+  line-height: 1.2;
+}
+
+.role-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #86efac;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btn-close-mobile {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.sidebar-nav {
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.75rem 1rem 0.4rem;
+}
+.nav-section-label:first-child { padding-top: 0.25rem; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+.nav-item:hover { background: rgba(255, 255, 255, 0.06); color: #ffffff; }
+.nav-item.router-link-active {
+  background: #22c55e;
+  color: #0a2e22;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    margin-left: 0;
+    transform: translateX(-100%);
+    box-shadow: 10px 0 25px rgba(0,0,0,0.25);
+  }
+  .sidebar:not(.is-closed) {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 30;
+  }
+  .btn-close-mobile { display: block; }
+}
+</style>

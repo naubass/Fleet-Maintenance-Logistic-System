@@ -50,31 +50,32 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const login = async (email, password) => {
-    try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
 
-      const data = await res.json()
+    const data = await res.json()
 
-      if (res.ok && data.success) {
-        token.value = data.token
-        user.value = data.user
+    if (res.ok && data.success) {
+      token.value = data.token || data.data?.token || ''
+      localStorage.setItem('token', token.value)
 
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('user', JSON.stringify(data.user))
+      // 1. Ambil profil lengkap dari /api/auth/me agar role pasti terisi
+      await fetchUserProfile()
 
-        return { success: true }
-      } else {
-        return { success: false, message: data.message || 'Login gagal.' }
-      }
-    } catch (err) {
-      console.error('Login error:', err)
-      return { success: false, message: 'Tidak dapat terhubung ke server backend.' }
+      // 2. Kembalikan data user lengkap dengan role
+      return { success: true, user: user.value }
+    } else {
+      return { success: false, message: data.message || 'Login gagal.' }
     }
+  } catch (err) {
+    console.error('Login error:', err)
+    return { success: false, message: 'Tidak dapat terhubung ke server backend.' }
   }
+}
 
   const logout = () => {
     token.value = ''

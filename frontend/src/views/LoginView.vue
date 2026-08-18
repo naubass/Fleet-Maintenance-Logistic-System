@@ -19,8 +19,13 @@ const handleLogin = async () => {
   isLoading.value = false
 
   if (res.success) {
-    // ARAHKAN TEPAT KE ROUTE ADMIN DASHBOARD
-    router.push('/admin/dashboard')
+    const userRole = (authStore.user?.role || res.user?.role || '').toLowerCase()
+    
+    if (userRole === 'manager') {
+      router.push('/manager/dashboard')
+    } else {
+      router.push('/admin/dashboard')
+    }
   } else {
     errorMessage.value = res.message
   }
