@@ -1,5 +1,6 @@
 import { PartUsageModel } from "../models/PartUsageModel.js";
 import { invalidateCache } from "../utils/cacheHelper.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 export const getByMaintenanceRecord = async (req, res) => {
   try {
@@ -34,6 +35,16 @@ export const createPartUsage = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: CREATE PART USAGE
+    logActivity({
+      userId: req.user?.id,
+      action: "CREATE",
+      entity: "SPAREPART",
+      entityId: data?.id,
+      description: `${req.user?.full_name || 'Pengguna'} menggunakan ${quantity} unit sparepart pada servis ID #${maintenance_record_id}`,
+      req
+    });
+
     return res.status(201).json({
       success: true,
       data,
@@ -56,6 +67,16 @@ export const deletePartUsage = async (req, res) => {
       "spareparts:list:p1:l10:sall:call",        // Fallback format
       "dashboard:stats:summary"
     ]);
+
+    // Catat Log Aktivitas: DELETE PART USAGE
+    logActivity({
+      userId: req.user?.id,
+      action: "DELETE",
+      entity: "SPAREPART",
+      entityId: id,
+      description: `${req.user?.full_name || 'Pengguna'} membatalkan pemakaian suku cadang (ID Catatan #${id}) dan mengembalikan stok`,
+      req
+    });
 
     return res.status(200).json({
       success: true,

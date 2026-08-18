@@ -1,5 +1,6 @@
 import { ScheduleModel } from "../models/ScheduleModel.js";
 import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 // GET /api/schedules (Dengan Caching Redis)
 export const getAllSchedules = async (req, res) => {
@@ -59,6 +60,16 @@ export const createSchedule = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: CREATE SCHEDULE
+    logActivity({
+      userId: req.user?.id,
+      action: "CREATE",
+      entity: "SCHEDULE",
+      entityId: data?.id,
+      description: `${req.user?.full_name || 'Admin'} membuat jadwal servis baru: ${service_type} (Status: ${data?.status || status || 'pending'})`,
+      req
+    });
+
     return res.status(201).json({ success: true, data, message: "Jadwal berhasil ditambahkan" });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
@@ -88,6 +99,16 @@ export const updateSchedule = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: UPDATE SCHEDULE
+    logActivity({
+      userId: req.user?.id,
+      action: "UPDATE",
+      entity: "SCHEDULE",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} memperbarui jadwal servis ID #${id} (Status: ${status || data?.status})`,
+      req
+    });
+
     return res.status(200).json({ success: true, data, message: "Jadwal Service berhasil diperbarui" });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
@@ -106,6 +127,16 @@ export const deleteSchedule = async (req, res) => {
       `schedules:${id}`,
       "dashboard:stats:summary"
     ]);
+
+    // Catat Log Aktivitas: DELETE SCHEDULE
+    logActivity({
+      userId: req.user?.id,
+      action: "DELETE",
+      entity: "SCHEDULE",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} menghapus jadwal servis ID #${id}`,
+      req
+    });
 
     return res.status(200).json({ success: true, message: "Jadwal berhasil dihapus" });
   } catch (err) {

@@ -67,6 +67,12 @@ const routes = [
         name: 'spareparts',
         component: () => import('../views/admin/SparepartsView.vue'),
         meta: { title: 'Suku Cadang & Inventaris | RawatArmada' }
+      },
+      {
+        path: 'activity-logs',
+        name: 'activity-logs',
+        component: () => import('../views/Admin/ActivityLogsView.vue'),
+        meta: { title: 'Audit Trail & Log Aktivitas | RawatArmada' }
       }
     ]
   },

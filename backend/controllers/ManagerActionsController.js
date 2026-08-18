@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { supabase } from "../config/supabaseClient.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 // AMBIL DATA BUDGET THRESHOLD
 export const getBudgetThreshold = async (req, res) => {
@@ -42,6 +43,16 @@ export const setBudgetThreshold = async (req, res) => {
       .single();
 
     if (error) throw error;
+
+    // Catat Log Aktivitas: UPDATE BUDGET
+    logActivity({
+      userId: req.user?.id,
+      action: "UPDATE",
+      entity: "BUDGET",
+      entityId: String(targetYear),
+      description: `${req.user?.full_name || 'Manager'} mengatur ambang batas pagu anggaran tahun ${targetYear} menjadi Rp ${limitNominal.toLocaleString('id-ID')}`,
+      req
+    });
 
     return res.status(200).json({
       success: true,
@@ -141,6 +152,15 @@ export const exportMaintenanceReport = async (req, res) => {
       row.getCell("plate").alignment = { vertical: "middle", horizontal: "center" };
       row.getCell("status").alignment = { vertical: "middle", horizontal: "center" };
       row.getCell("date").alignment = { vertical: "middle", horizontal: "center" };
+    });
+
+    // Catat Log Aktivitas: EXPORT REPORT
+    logActivity({
+      userId: req.user?.id,
+      action: "LOGIN", // atau gunakan custom action label / UPDATE
+      entity: "BUDGET",
+      description: `${req.user?.full_name || 'Manager'} mengunduh Laporan Rekap Servis & Biaya Excel (.xlsx)`,
+      req
     });
 
     // Kirim File Stream XLSX

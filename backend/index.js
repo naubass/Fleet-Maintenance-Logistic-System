@@ -10,6 +10,7 @@ import sparepartRoutes from "./routes/sparepartRoutes.js";
 import partUsageRoutes from "./routes/partUsageRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import managerRoutes from "./routes/managerRoutes.js";
+import activityLogRoutes from "./routes/activityLogRoutes.js";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use("/api/spareparts", sparepartRoutes);
 app.use("/api/part-usages", partUsageRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/manager", managerRoutes);
+app.use("/api/activity-logs", activityLogRoutes);
 
 // Check API Application
 app.get("/api/health", (req, res) => {

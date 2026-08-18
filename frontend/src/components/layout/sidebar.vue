@@ -82,6 +82,14 @@ const handleNavClick = () => {
         </svg>
         <span>Kelola Pengguna</span>
       </router-link>
+
+      <!-- Menu Log Aktivitas -->
+      <router-link to="/admin/activity-logs" class="nav-item" @click="handleNavClick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+        </svg>
+        <span>Log Aktivitas</span>
+      </router-link>
     </nav>
   </aside>
 </template>

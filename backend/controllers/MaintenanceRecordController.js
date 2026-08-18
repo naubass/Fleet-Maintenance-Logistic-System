@@ -1,6 +1,7 @@
 import { supabase } from "../config/supabaseClient.js";
 import { MaintenanceRecordModel } from "../models/MaintenanceRecordModel.js";
 import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 // GET /api/maintenance-records (Dengan Caching Redis Terisolasi per Role/User)
 export const getAllRecords = async (req, res) => {
@@ -80,6 +81,16 @@ export const createRecord = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: CREATE MAINTENANCE RECORD
+    logActivity({
+      userId: req.user?.id,
+      action: "CREATE",
+      entity: "MAINTENANCE",
+      entityId: data?.id,
+      description: `${req.user?.full_name || 'Pengguna'} membuat catatan servis baru: "${problem_description}" (Status: ${data?.status || status || 'completed'})`,
+      req
+    });
+
     return res.status(201).json({ success: true, data, message: "Catatan Maintenance berhasil ditambahkan" });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
@@ -134,6 +145,16 @@ export const updateRecord = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: UPDATE MAINTENANCE RECORD
+    logActivity({
+      userId: req.user?.id,
+      action: "UPDATE",
+      entity: "MAINTENANCE",
+      entityId: id,
+      description: `${req.user?.full_name || 'Pengguna'} memperbarui servis ID #${id} (Status: ${status || data?.status || 'completed'}, Total Biaya: Rp ${grandTotal.toLocaleString('id-ID')})`,
+      req
+    });
+
     return res.status(200).json({ success: true, data, message: "Catatan Maintenance berhasil diperbarui" });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
@@ -151,6 +172,16 @@ export const deleteRecord = async (req, res) => {
       `maintenance_records:${id}`,
       "dashboard:stats:summary"
     ]);
+
+    // Catat Log Aktivitas: DELETE MAINTENANCE RECORD
+    logActivity({
+      userId: req.user?.id,
+      action: "DELETE",
+      entity: "MAINTENANCE",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} menghapus catatan servis ID #${id}`,
+      req
+    });
 
     return res.status(200).json({ success: true, message: "Catatan Maintenance berhasil dihapus" });
   } catch (err) {

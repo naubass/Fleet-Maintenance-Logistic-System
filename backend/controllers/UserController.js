@@ -1,5 +1,6 @@
 import { UserModel } from "../models/UserModel.js";
 import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 // GET /api/users 
 export const getAllUsers = async (req, res) => {
@@ -56,6 +57,16 @@ export const createUser = async (req, res) => {
       "users:list:p1:l10:sall:rmechanic"
     ]);
 
+    // Catat Log Aktivitas: CREATE USER
+    logActivity({
+      userId: req.user?.id,
+      action: "CREATE",
+      entity: "USER",
+      entityId: data?.id,
+      description: `${req.user?.full_name || 'Admin'} membuat akun baru: ${data?.full_name || full_name} (Role: ${data?.role || role || 'mechanic'})`,
+      req
+    });
+
     return res.status(201).json({
       success: true,
       data,
@@ -85,6 +96,16 @@ export const updateUser = async (req, res) => {
       `users:${id}`
     ]);
 
+    // Catat Log Aktivitas: UPDATE USER
+    logActivity({
+      userId: req.user?.id,
+      action: "UPDATE",
+      entity: "USER",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} memperbarui profil/role user: ${data?.full_name || full_name} (${data?.role || role})`,
+      req
+    });
+
     return res.status(200).json({
       success: true,
       data,
@@ -107,6 +128,16 @@ export const deleteUser = async (req, res) => {
       "users:list:p1:l10:sall:rmechanic",
       `users:${id}`
     ]);
+
+    // Catat Log Aktivitas: DELETE USER
+    logActivity({
+      userId: req.user?.id,
+      action: "DELETE",
+      entity: "USER",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} menghapus akun pengguna ID #${id}`,
+      req
+    });
 
     return res.status(200).json({
       success: true,

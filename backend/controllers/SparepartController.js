@@ -1,5 +1,6 @@
 import { SparepartModel } from "../models/SparepartModel.js";
 import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 // GET /api/spareparts/
 export const generateCode = async (req, res) => {
@@ -72,6 +73,16 @@ export const createSparepart = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: CREATE SPAREPART
+    logActivity({
+      userId: req.user?.id,
+      action: "CREATE",
+      entity: "SPAREPART",
+      entityId: data?.id,
+      description: `${req.user?.full_name || 'Admin'} menambahkan suku cadang baru: ${data?.name || name} [${data?.part_number || part_number}] (Stok: ${data?.stock ?? req.body.stock ?? 0})`,
+      req
+    });
+
     return res.status(201).json({ success: true, data, message: "Sparepart berhasil ditambahkan." });
   } catch (err) {
     if (err.code === '23505' || err.message?.includes('unique constraint')) {
@@ -102,6 +113,16 @@ export const updateSparepart = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas: UPDATE SPAREPART
+    logActivity({
+      userId: req.user?.id,
+      action: "UPDATE",
+      entity: "SPAREPART",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} memperbarui suku cadang: ${data?.name || name} [${data?.part_number || part_number}] (Stok: ${data?.stock ?? req.body.stock})`,
+      req
+    });
+
     return res.status(200).json({ success: true, data, message: "Sparepart berhasil diperbarui." });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
@@ -120,6 +141,16 @@ export const deleteSparepart = async (req, res) => {
       `spareparts:${id}`,
       "dashboard:stats:summary"
     ]);
+    
+    // Catat Log Aktivitas: DELETE SPAREPART
+    logActivity({
+      userId: req.user?.id,
+      action: "DELETE",
+      entity: "SPAREPART",
+      entityId: id,
+      description: `${req.user?.full_name || 'Admin'} menghapus suku cadang ID #${id}`,
+      req
+    });
 
     return res.status(200).json({ success: true, message: "Sparepart berhasil dihapus." });
   } catch (err) {

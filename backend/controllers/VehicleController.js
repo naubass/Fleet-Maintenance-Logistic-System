@@ -1,5 +1,6 @@
 import { VehicleModel } from "../models/VehicleModel.js";
 import { getOrSetCache, invalidateCache } from "../utils/cacheHelper.js";
+import { logActivity } from "../services/activityLoggerService.js";
 
 // GET all vehicles
 export const getAllVehicles = async (req, res) => {
@@ -47,6 +48,16 @@ export const createVehicles = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas
+    logActivity({
+      userId: req.user?.id,
+      action: "CREATE",
+      entity: "VEHICLE",
+      entityId: data.id,
+      description: `${req.user?.full_name || 'Admin'} menambahkan unit armada baru ${data.model_name} (${data.plate_number})`,
+      req
+    });
+
     return res.status(201).json({ 
       success: true, 
       data, 
@@ -78,6 +89,16 @@ export const updateVehicles = async (req, res) => {
       "dashboard:stats:summary"
     ]);
 
+    // Catat Log Aktivitas
+    logActivity({
+      userId: req.user?.id,
+      action: "UPDATE",
+      entity: "VEHICLE",
+      entityId: data.id,
+      description: `${req.user?.full_name || 'Admin'} memperbarui unit armada baru ${data.model_name} (${data.plate_number})`,
+      req
+    });
+
     return res.status(200).json({ 
       success: true, 
       data, 
@@ -100,6 +121,16 @@ export const deleteVehicles = async (req, res) => {
       `vehicles:${id}`,
       "dashboard:stats:summary"
     ]);
+
+    // Catat Log Aktivitas
+    logActivity({
+      userId: req.user?.id,
+      action: "DELETE",
+      entity: "VEHICLE",
+      entityId: data.id,
+      description: `${req.user?.full_name || 'Admin'} menghapus unit armada baru ${data.model_name} (${data.plate_number})`,
+      req
+    });
 
     return res.status(200).json({ 
       success: true, 
