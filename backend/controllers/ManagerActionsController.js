@@ -96,7 +96,7 @@ export const exportMaintenanceReport = async (req, res) => {
       { header: "Tanggal Servis", key: "date", width: 16 }
     ];
 
-    // 3. Styling Header (Warna Hijau Emerald Tema App)
+    // Styling Header (Warna Hijau Emerald Tema App)
     const headerRow = worksheet.getRow(1);
     headerRow.height = 28;
     headerRow.eachCell((cell) => {
@@ -114,7 +114,7 @@ export const exportMaintenanceReport = async (req, res) => {
       cell.alignment = { vertical: "middle", horizontal: "center" };
     });
 
-    // 4. Masukkan Data Baris
+    // Masukkan Data Baris
     (data || []).forEach((item, index) => {
       const row = worksheet.addRow({
         no: index + 1,
@@ -143,7 +143,7 @@ export const exportMaintenanceReport = async (req, res) => {
       row.getCell("date").alignment = { vertical: "middle", horizontal: "center" };
     });
 
-    // 5. Kirim File Stream XLSX
+    // Kirim File Stream XLSX
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
