@@ -5,8 +5,11 @@ import { useAuthStore } from '../../stores/authStore'
 const authStore = useAuthStore()
 const vehicles = ref([])
 const loading = ref(true)
+
+// State untuk filter
 const searchQuery = ref('')
 const selectedStatus = ref('')
+const selectedCategory = ref('')
 
 const fetchVehicles = async () => {
   try {
@@ -28,12 +31,32 @@ const fetchVehicles = async () => {
   }
 }
 
+// Ekstrak daftar kategori unik secara dinamis dari data kendaraan
+const availableCategories = computed(() => {
+  const categories = vehicles.value.map(v => v.category).filter(Boolean)
+  return [...new Set(categories)].sort()
+})
+
+// Logika pemfilteran gabungan (Pencarian + Status + Kategori)
 const filteredVehicles = computed(() => {
   return vehicles.value.filter(v => {
-    const matchSearch = (v.model_name || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                        (v.plate_number || '').toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchStatus = !selectedStatus.value || v.status === selectedStatus.value
-    return matchSearch && matchStatus
+    // 1. Filter Pencarian (Case-insensitive)
+    const q = searchQuery.value.trim().toLowerCase()
+    const matchSearch = !q || 
+      (v.model_name || '').toLowerCase().includes(q) ||
+      (v.plate_number || '').toLowerCase().includes(q)
+
+    // 2. Filter Status (Case-insensitive)
+    const vehicleStatus = (v.status || '').toLowerCase()
+    const targetStatus = selectedStatus.value.toLowerCase()
+    const matchStatus = !targetStatus || vehicleStatus === targetStatus
+
+    // 3. Filter Kategori (Case-insensitive)
+    const vehicleCategory = (v.category || '').toLowerCase()
+    const targetCategory = selectedCategory.value.toLowerCase()
+    const matchCategory = !targetCategory || vehicleCategory === targetCategory
+
+    return matchSearch && matchStatus && matchCategory
   })
 })
 
@@ -57,7 +80,7 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- Filter Bar Lengkap -->
     <div class="filter-bar">
       <input 
         type="text" 
@@ -65,11 +88,21 @@ onMounted(() => {
         placeholder="Cari armada atau plat nomor..." 
         class="input-search"
       />
+      
+      <!-- Dropdown Kategori Dinamis -->
+      <select v-model="selectedCategory" class="select-filter">
+        <option value="">Semua Kategori</option>
+        <option v-for="cat in availableCategories" :key="cat" :value="cat">
+          {{ cat }}
+        </option>
+      </select>
+
+      <!-- Dropdown Status -->
       <select v-model="selectedStatus" class="select-filter">
         <option value="">Semua Status</option>
-        <option value="Ready">Ready</option>
-        <option value="Maintenance">Maintenance</option>
-        <option value="Breakdown">Breakdown</option>
+        <option value="ready">Ready</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="breakdown">Breakdown</option>
       </select>
     </div>
 
@@ -165,10 +198,12 @@ onMounted(() => {
 .filter-bar {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap; /* Supaya turun ke baris baru jika layar kecil */
 }
 
 .input-search {
-  flex: 1;
+  flex: 2; /* Kolom search lebih panjang sedikit */
+  min-width: 250px;
   padding: 0.65rem 1rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -182,12 +217,15 @@ onMounted(() => {
 }
 
 .select-filter {
+  flex: 1;
+  min-width: 160px;
   padding: 0.65rem 1rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.875rem;
   outline: none;
   background: #ffffff;
+  cursor: pointer;
 }
 .select-filter:focus {
   border-color: #16a34a;
@@ -251,6 +289,7 @@ onMounted(() => {
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 700;
+  text-transform: capitalize;
 }
 .status-ready { background: #dcfce7; color: #15803d; }
 .status-maintenance { background: #fef3c7; color: #b45309; }
