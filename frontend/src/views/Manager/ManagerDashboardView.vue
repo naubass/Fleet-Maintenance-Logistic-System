@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { useAuthStore } from '../../stores/authStore'
 import { Chart, registerables } from 'chart.js'
 
@@ -7,6 +7,7 @@ Chart.register(...registerables)
 
 const authStore = useAuthStore()
 const loading = ref(true)
+const isExporting = ref(false)
 
 const stats = ref({
   summary: {
@@ -21,6 +22,12 @@ const stats = ref({
   topCostVehicles: []
 })
 
+// State Threshold Anggaran
+const annualBudgetLimit = ref(0)
+const budgetInput = ref(0)
+const isEditingBudget = ref(false)
+const isSavingBudget = ref(false)
+
 const costChartCanvas = ref(null)
 let costChartInstance = null
 
@@ -32,13 +39,90 @@ const formatCurrency = (val) => {
   }).format(val || 0)
 }
 
+// Perhitungan Persentase Penggunaan Pagu Anggaran
+const budgetUsagePercent = computed(() => {
+  if (!annualBudgetLimit.value || annualBudgetLimit.value <= 0) return 0
+  const pct = (stats.value.summary.totalMaintenanceExpense / annualBudgetLimit.value) * 100
+  return Math.round(pct)
+})
+
+// Ambil Ambang Batas Anggaran
+const fetchBudgetThreshold = async () => {
+  try {
+    const res = await fetch(`http://localhost:5000/api/manager/budget-threshold?year=${new Date().getFullYear()}`, {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    const json = await res.json()
+    if (json.success) {
+      annualBudgetLimit.value = Number(json.data.annual_budget_limit || 0)
+      budgetInput.value = annualBudgetLimit.value
+    }
+  } catch (err) {
+    console.error('Gagal mengambil budget threshold:', err)
+  }
+}
+
+// Simpan Ambang Batas Anggaran
+const saveBudgetThreshold = async () => {
+  try {
+    isSavingBudget.value = true
+    const res = await fetch('http://localhost:5000/api/manager/budget-threshold', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        year: new Date().getFullYear(),
+        annual_budget_limit: budgetInput.value
+      })
+    })
+    const json = await res.json()
+    if (json.success) {
+      annualBudgetLimit.value = Number(budgetInput.value)
+      isEditingBudget.value = false
+    }
+  } catch (err) {
+    console.error('Gagal menyimpan threshold:', err)
+  } finally {
+    isSavingBudget.value = false
+  }
+}
+
+// Ekspor Laporan Excel (.xlsx)
+const handleExportReport = async () => {
+  try {
+    isExporting.value = true
+    const res = await fetch('http://localhost:5000/api/manager/export/maintenance', {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    
+    if (!res.ok) throw new Error('Gagal mengunduh file laporan Excel')
+
+    const blob = await res.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = `Laporan_Perawatan_Armada_${new Date().getFullYear()}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (err) {
+    console.error('Export error:', err)
+    alert('Gagal mengekspor laporan Excel.')
+  } finally {
+    isExporting.value = false
+  }
+}
+
 const fetchManagerDashboard = async () => {
   loading.value = true
   try {
-    const res = await fetch("http://localhost:5000/api/manager/dashboard", {
+    const res = await fetch('http://localhost:5000/api/manager/dashboard', {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
-        "Content-Type": "application/json"
+        'Content-Type': 'application/json'
       }
     })
     const json = await res.json()
@@ -48,7 +132,7 @@ const fetchManagerDashboard = async () => {
       renderCostChart()
     }
   } catch (err) {
-    console.error("Gagal memuat analitik manager:", err)
+    console.error('Gagal memuat analitik manager:', err)
   } finally {
     loading.value = false
   }
@@ -56,12 +140,7 @@ const fetchManagerDashboard = async () => {
 
 const renderCostChart = () => {
   if (!costChartCanvas.value) return
-  if (costChartInstance) {
-    costChartInstance.destroy()
-  }
-
-  const laborExpense = stats.value.summary?.totalLaborExpense || 0
-  const partsExpense = stats.value.summary?.totalPartsExpense || 0
+  if (costChartInstance) costChartInstance.destroy()
 
   costChartInstance = new Chart(costChartCanvas.value, {
     type: 'doughnut',
@@ -69,7 +148,7 @@ const renderCostChart = () => {
       labels: ['Biaya Jasa & Mekanik', 'Biaya Suku Cadang'],
       datasets: [
         {
-          data: [laborExpense, partsExpense],
+          data: [stats.value.summary.totalLaborExpense, stats.value.summary.totalPartsExpense],
           backgroundColor: ['#22c55e', '#0e3a2c'],
           borderWidth: 0,
           hoverOffset: 4
@@ -80,20 +159,10 @@ const renderCostChart = () => {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            boxWidth: 12,
-            padding: 16,
-            font: { family: 'Inter', size: 12 }
-          }
-        },
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } },
         tooltip: {
           callbacks: {
-            label: function (context) {
-              const value = context.raw || 0
-              return ` ${context.label}: ${formatCurrency(value)}`
-            }
+            label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}`
           }
         }
       },
@@ -104,19 +173,25 @@ const renderCostChart = () => {
 
 onMounted(() => {
   fetchManagerDashboard()
+  fetchBudgetThreshold()
 })
 </script>
 
 <template>
   <div class="dashboard-page">
-    <!-- Welcome Header / Executive Banner -->
+    <!-- Welcome Header -->
     <div class="welcome-card">
       <div class="welcome-text">
         <h2>Executive Dashboard, {{ authStore.userName || authStore.user?.full_name || 'Manager' }}! 📊</h2>
-        <p>Tinjauan strategis biaya perawatan, efisiensi anggaran suku cadang, dan kesiapan operasional armada.</p>
+        <p>Tinjauan strategis alokasi biaya, kontrol pagu anggaran servis, dan efisiensi kesiapan armada.</p>
         <div class="welcome-actions">
-          <router-link to="/manager/maintenance-records" class="btn-primary">Audit Rekap Servis</router-link>
-          <router-link to="/manager/vehicles" class="btn-secondary">Kesiapan Armada</router-link>
+          <button @click="handleExportReport" class="btn-primary" :disabled="isExporting">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            <span>{{ isExporting ? 'Memproses Ekspor...' : 'Ekspor Laporan (Excel)' }}</span>
+          </button>
+          <router-link to="/manager/maintenance-records" class="btn-secondary">Audit Rekap Servis</router-link>
         </div>
       </div>
       <div class="welcome-decor" aria-hidden="true">
@@ -128,7 +203,68 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 4 Stat Cards Grid -->
+    <!-- Ambang Batas Anggaran (Threshold Card) -->
+    <div class="card threshold-card">
+      <div class="threshold-header">
+        <div>
+          <h3 class="card-heading">Pagu Anggaran Servis (Tahun {{ new Date().getFullYear() }})</h3>
+        </div>
+        <button v-if="!isEditingBudget" @click="isEditingBudget = true" class="btn-edit-threshold">
+          ⚙️ Atur Limit Pagu
+        </button>
+      </div>
+
+      <div v-if="isEditingBudget" class="threshold-edit-box">
+        <div class="input-group">
+          <span class="input-prefix">Rp</span>
+          <input 
+            type="number" 
+            v-model="budgetInput" 
+            placeholder="Masukkan nominal batas tahunan..." 
+            class="input-budget"
+          />
+        </div>
+        <button @click="saveBudgetThreshold" class="btn-save" :disabled="isSavingBudget">
+          {{ isSavingBudget ? 'Menyimpan...' : 'Simpan Limit' }}
+        </button>
+        <button @click="isEditingBudget = false" class="btn-cancel">Batal</button>
+      </div>
+
+      <div v-else class="threshold-display">
+        <div class="threshold-metrics">
+          <div>
+            <span class="sub-label">Pengeluaran Berjalan</span>
+            <strong class="metric-val text-success">{{ formatCurrency(stats.summary.totalMaintenanceExpense) }}</strong>
+          </div>
+          <div class="text-right">
+            <span class="sub-label">Target Limit Pagu</span>
+            <strong class="metric-val text-slate">{{ formatCurrency(annualBudgetLimit) }}</strong>
+          </div>
+        </div>
+
+        <div class="progress-bar-bg">
+          <div 
+            class="progress-bar-fill" 
+            :class="{
+              'fill-safe': budgetUsagePercent < 80,
+              'fill-warning': budgetUsagePercent >= 80 && budgetUsagePercent < 100,
+              'fill-danger': budgetUsagePercent >= 100
+            }"
+            :style="{ width: `${Math.min(100, budgetUsagePercent)}%` }"
+          ></div>
+        </div>
+
+        <div class="threshold-footer">
+          <span>Penggunaan Anggaran: <strong>{{ budgetUsagePercent }}%</strong></span>
+          <span v-if="annualBudgetLimit === 0" class="badge-neutral">Limit belum diatur</span>
+          <span v-else-if="budgetUsagePercent >= 100" class="badge-danger">🚨 Anggaran Melebihi Batas Pagu!</span>
+          <span v-else-if="budgetUsagePercent >= 80" class="badge-warning">⚠️ Mendekati Batas Maksimal ({{ budgetUsagePercent }}%)</span>
+          <span v-else class="badge-safe">✓ Dalam Batas Aman</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Metrik Kartu -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon bg-emerald">💰</div>
@@ -166,9 +302,8 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Analytics & Breakdown Section -->
+    <!-- Split Visualisasi & Top Cost Fleet -->
     <div class="dashboard-split">
-      <!-- Chart Proporsi Biaya -->
       <div class="card chart-card">
         <div class="card-header">
           <h3>Proporsi Alokasi Biaya</h3>
@@ -177,17 +312,17 @@ onMounted(() => {
         <div class="chart-container">
           <canvas ref="costChartCanvas"></canvas>
           
-          <div class="chart-center-label">
-            <span class="center-number">{{ formatCurrency(stats.summary.totalMaintenanceExpense) }}</span>
-            <span class="center-text">Total Anggaran</span>
+          <!-- Teks di Tengah Donut Chart -->
+          <div class="chart-center-text">
+            <span class="center-val">{{ formatCurrency(stats.summary.totalMaintenanceExpense) }}</span>
+            <span class="center-label">TOTAL ANGGARAN</span>
           </div>
         </div>
       </div>
 
-      <!-- Top 5 Unit Maintenance Expense -->
       <div class="card activity-card">
         <div class="card-header">
-          <h3>Top 5 Armada Tertinggi Biaya Servis</h3>
+          <h3>Top 5 Armada Pengeluaran Tertinggi</h3>
           <router-link to="/manager/vehicles" class="link-more">Semua Unit →</router-link>
         </div>
 
@@ -195,27 +330,16 @@ onMounted(() => {
           <table class="recent-table">
             <thead>
               <tr>
-                <th>Peringkat & Unit</th>
-                <th>Proporsi Biaya</th>
+                <th>Peringkat &amp; Unit</th>
                 <th>Total Pengeluaran</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="stats.topCostVehicles.length === 0">
-                <td colspan="3" class="text-center py-4 text-muted">Belum ada data pengeluaran armada.</td>
+                <td colspan="2" class="text-center py-4 text-muted">Belum ada data pengeluaran armada.</td>
               </tr>
               <tr v-for="(v, index) in stats.topCostVehicles" :key="index">
-                <td>
-                  <strong>#{{ index + 1 }} {{ v.name }}</strong>
-                </td>
-                <td style="width: 35%;">
-                  <div class="progress-bar-bg">
-                    <div 
-                      class="progress-bar-fill" 
-                      :style="{ width: `${Math.min(100, Math.round((v.cost / (stats.summary.totalMaintenanceExpense || 1)) * 100))}%` }"
-                    ></div>
-                  </div>
-                </td>
+                <td><strong>#{{ index + 1 }} {{ v.name }}</strong></td>
                 <td class="font-semibold text-slate-800">{{ formatCurrency(v.cost) }}</td>
               </tr>
             </tbody>
@@ -227,12 +351,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.dashboard-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+.dashboard-page { display: flex; flex-direction: column; gap: 1.5rem; }
 
+/* Welcome Card */
 .welcome-card {
   position: relative;
   overflow: hidden;
@@ -241,49 +362,29 @@ onMounted(() => {
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(14, 58, 44, 0.18);
 }
-
-.welcome-text h2 {
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
-}
-
-.welcome-text p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  margin-bottom: 1.5rem;
-  max-width: 520px;
-}
-
-.welcome-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
+.welcome-text h2 { font-size: 1.65rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; }
+.welcome-text p { color: rgba(255, 255, 255, 0.8); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 520px; }
+.welcome-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .btn-primary {
   display: inline-flex;
   align-items: center;
-  padding: 0.625rem 1.25rem;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
   background-color: #22c55e;
   color: #0a2e22;
+  border: none;
   border-radius: 10px;
   font-weight: 700;
   font-size: 0.875rem;
-  text-decoration: none;
-  transition: background-color 0.2s;
+  cursor: pointer;
+  transition: background 0.2s;
 }
-
-.btn-primary:hover {
-  background-color: #4ade80;
-}
-
+.btn-primary:hover:not(:disabled) { background-color: #16a34a; color: #ffffff; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary {
   display: inline-flex;
   align-items: center;
-  padding: 0.625rem 1.25rem;
+  padding: 0.65rem 1.25rem;
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   border-radius: 10px;
@@ -291,210 +392,118 @@ onMounted(() => {
   font-size: 0.875rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
   text-decoration: none;
-  transition: all 0.2s;
 }
-
-.btn-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.18);
-}
-
-.welcome-decor {
-  position: absolute;
-  right: 0.5rem;
-  bottom: -1rem;
-  color: rgba(255, 255, 255, 0.08);
-}
+.btn-icon { width: 18px; height: 18px; }
+.welcome-decor { position: absolute; right: 0.5rem; bottom: -1rem; color: rgba(255, 255, 255, 0.08); }
 .welcome-decor svg { width: 170px; height: 170px; }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1.25rem;
-}
-
-.stat-card {
-  background: #ffffff;
-  padding: 1.25rem;
-  border-radius: 14px;
-  border: 1px solid #e6f4ea;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 1px 3px rgba(15, 61, 46, 0.04);
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.stat-card:hover {
-  box-shadow: 0 6px 16px rgba(15, 61, 46, 0.08);
-  transform: translateY(-2px);
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-}
-
-.bg-green { background-color: #dcfce7; }
-.bg-emerald { background-color: #d1fae5; }
-.bg-amber { background-color: #fef3c7; }
-.bg-rose { background-color: #ffe4e6; }
-
-.stat-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.stat-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-top: 0.15rem;
-}
-
-.stat-value .unit {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #94a3b8;
-}
-
-.text-emerald { color: #059669; }
-.text-amber { color: #d97706; }
-.text-rose { color: #e11d48; }
-
-/* Split Grid */
-.dashboard-split {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 1.5rem;
-}
-
-@media (max-width: 1024px) {
-  .dashboard-split {
-    grid-template-columns: 1fr;
-  }
-}
-
-.card {
+/* Threshold Section */
+.threshold-card {
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e6f4ea;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(15, 61, 46, 0.04);
-}
-
-.card-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.threshold-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.card-heading { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+.btn-edit-threshold {
+  padding: 0.45rem 0.85rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.threshold-edit-box { display: flex; gap: 0.75rem; align-items: center; }
+.input-group { display: flex; align-items: center; flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+.input-prefix { background: #f8fafc; padding: 0.6rem 0.85rem; font-weight: 700; color: #64748b; font-size: 0.875rem; border-right: 1px solid #cbd5e1; }
+.input-budget { flex: 1; border: none; padding: 0.6rem 0.85rem; font-size: 0.9rem; outline: none; }
+.btn-save { padding: 0.65rem 1.25rem; background: #16a34a; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+.btn-cancel { padding: 0.65rem 1rem; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+
+.threshold-metrics { display: flex; justify-content: space-between; }
+.sub-label { display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 0.2rem; }
+.metric-val { font-size: 1.15rem; font-weight: 700; }
+.text-success { color: #15803d; }
+.text-slate { color: #1e293b; }
+
+.progress-bar-bg { width: 100%; height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 0.5rem; }
+.progress-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease-in-out; }
+.fill-safe { background: #22c55e; }
+.fill-warning { background: #f59e0b; }
+.fill-danger { background: #e11d48; }
+
+.threshold-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: #475569; }
+.badge-safe { color: #15803d; font-weight: 700; }
+.badge-warning { color: #d97706; font-weight: 700; }
+.badge-danger { color: #e11d48; font-weight: 700; }
+.badge-neutral { color: #94a3b8; font-style: italic; }
+
+/* Grid & Split */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; }
+.stat-card { background: #ffffff; padding: 1.25rem; border-radius: 14px; border: 1px solid #e6f4ea; display: flex; align-items: center; gap: 1rem; }
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+.bg-green { background-color: #dcfce7; }
+.bg-emerald { background-color: #d1fae5; }
+.bg-amber { background-color: #fef3c7; }
+.bg-rose { background-color: #ffe4e6; }
+.stat-label { font-size: 0.78rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+.stat-value { font-size: 1.3rem; font-weight: 700; color: #0f172a; }
+.stat-value .unit { font-size: 0.8rem; font-weight: 500; color: #94a3b8; }
+.text-emerald { color: #059669; }
+.text-amber { color: #d97706; }
+.text-rose { color: #e11d48; }
+
+.dashboard-split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1.5rem; }
+@media (max-width: 1024px) { .dashboard-split { grid-template-columns: 1fr; } }
+.card { background: #ffffff; border-radius: 16px; border: 1px solid #e6f4ea; padding: 1.5rem; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.card-header h3 { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+.badge { font-size: 0.72rem; padding: 0.2rem 0.5rem; background-color: #dcfce7; color: #15803d; border-radius: 6px; font-weight: 600; }
+.chart-container { height: 240px; position: relative; }
+.recent-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.recent-table th { text-align: left; padding: 0.6rem 0.75rem; color: #64748b; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
+.recent-table td { padding: 0.75rem; border-bottom: 1px solid #f8fafc; }
+.link-more { font-size: 0.82rem; color: #15803d; text-decoration: none; font-weight: 600; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-muted { color: #94a3b8; }
+
+.chart-container { 
+  height: 240px; 
+  position: relative; 
+  display: flex;
   align-items: center;
-  margin-bottom: 1.25rem;
+  justify-content: center;
 }
 
-.card-header h3 {
+.chart-center-text {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  text-align: center;
+}
+
+.center-val {
   font-size: 1.05rem;
   font-weight: 700;
   color: #0f172a;
 }
 
-.badge {
-  font-size: 0.72rem;
-  padding: 0.2rem 0.5rem;
-  background-color: #dcfce7;
-  color: #15803d;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.chart-container {
-  height: 250px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.link-more {
-  font-size: 0.82rem;
-  color: #15803d;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.recent-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.recent-table th {
-  text-align: left;
-  padding: 0.6rem 0.75rem;
+.center-label {
+  font-size: 0.65rem;
+  font-weight: 700;
   color: #64748b;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  border-bottom: 1px solid #f1f5f9;
+  letter-spacing: 0.05em;
 }
-
-.recent-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #f8fafc;
-  color: #334155;
-}
-
-.progress-bar-bg {
-  width: 100%;
-  height: 7px;
-  background: #f1f5f9;
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: #22c55e;
-  border-radius: 99px;
-}
-
-.text-center { text-align: center; }
-.text-muted { color: #94a3b8; }
-
-.chart-center-label {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.center-number {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.1;
-}
-
-.center-text {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-}
-</style>    
+</style>
