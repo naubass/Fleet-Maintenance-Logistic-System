@@ -21,7 +21,7 @@ const fetchLogs = async () => {
       action: selectedAction.value || 'all'
     })
 
-    const res = await fetch(`http://localhost:5000/api/activity-logs?${params.toString()}`, {
+    const res = await fetch(`/api/activity-logs?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         'Content-Type': 'application/json'

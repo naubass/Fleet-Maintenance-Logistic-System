@@ -9,7 +9,7 @@ const loading = ref(true)
 const fetchMyTasks = async () => {
   try {
     loading.value = true
-    const res = await fetch("http://localhost:5000/api/maintenance-records?limit=50&status=in_progress", {
+    const res = await fetch("/api/maintenance-records?limit=50&status=in_progress", {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json"

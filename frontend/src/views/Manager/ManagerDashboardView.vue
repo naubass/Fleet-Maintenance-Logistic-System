@@ -49,7 +49,7 @@ const budgetUsagePercent = computed(() => {
 // Ambil Ambang Batas Anggaran
 const fetchBudgetThreshold = async () => {
   try {
-    const res = await fetch(`http://localhost:5000/api/manager/budget-threshold?year=${new Date().getFullYear()}`, {
+    const res = await fetch(`/api/manager/budget-threshold?year=${new Date().getFullYear()}`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     })
     const json = await res.json()
@@ -66,7 +66,7 @@ const fetchBudgetThreshold = async () => {
 const saveBudgetThreshold = async () => {
   try {
     isSavingBudget.value = true
-    const res = await fetch('http://localhost:5000/api/manager/budget-threshold', {
+    const res = await fetch('/api/manager/budget-threshold', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${authStore.token}`,
@@ -93,7 +93,7 @@ const saveBudgetThreshold = async () => {
 const handleExportReport = async () => {
   try {
     isExporting.value = true
-    const res = await fetch('http://localhost:5000/api/manager/export/maintenance', {
+    const res = await fetch('/api/manager/export/maintenance', {
       headers: { Authorization: `Bearer ${authStore.token}` }
     })
     
@@ -119,7 +119,7 @@ const handleExportReport = async () => {
 const fetchManagerDashboard = async () => {
   loading.value = true
   try {
-    const res = await fetch('http://localhost:5000/api/manager/dashboard', {
+    const res = await fetch('/api/manager/dashboard', {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         'Content-Type': 'application/json'

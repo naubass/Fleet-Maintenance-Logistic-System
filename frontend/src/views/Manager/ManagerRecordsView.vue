@@ -27,7 +27,7 @@ const fetchRecords = async () => {
       endDate: endDate.value
     })
 
-    const res = await fetch(`http://localhost:5000/api/maintenance-records?${params.toString()}`, {
+    const res = await fetch(`/api/maintenance-records?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         'Content-Type': 'application/json'

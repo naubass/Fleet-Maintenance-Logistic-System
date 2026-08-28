@@ -14,7 +14,7 @@ const selectedCategory = ref('')
 const fetchVehicles = async () => {
   try {
     loading.value = true
-    const res = await fetch("http://localhost:5000/api/vehicles?limit=100", {
+    const res = await fetch("/api/vehicles?limit=100", {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json"

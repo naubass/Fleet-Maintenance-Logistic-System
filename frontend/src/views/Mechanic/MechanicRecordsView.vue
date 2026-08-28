@@ -19,7 +19,7 @@ const fetchRecords = async () => {
       status: selectedStatus.value || 'all'
     })
 
-    const res = await fetch(`http://localhost:5000/api/maintenance-records?${params.toString()}`, {
+    const res = await fetch(`/api/maintenance-records?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         'Content-Type': 'application/json'
