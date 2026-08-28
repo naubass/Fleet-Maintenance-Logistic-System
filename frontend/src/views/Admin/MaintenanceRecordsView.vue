@@ -70,7 +70,7 @@ const clearDateFilter = () => {
 // Load List Armada untuk Dropdown
 const loadVehicles = async () => {
   try {
-    const res = await fetch('http://localhost:5000/api/vehicles', {
+    const res = await fetch('/api/vehicles', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     const result = await res.json()
@@ -83,7 +83,7 @@ const loadVehicles = async () => {
 // Load List Mekanik dari Profiles
 const loadMechanics = async () => {
   try {
-    const res = await fetch('http://localhost:5000/api/users?role=mechanic', {
+    const res = await fetch('/api/users?role=mechanic', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     const result = await res.json()

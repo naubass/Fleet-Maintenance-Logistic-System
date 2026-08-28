@@ -29,7 +29,7 @@ const form = ref({
 
 const generatePartNumber = async () => {
   try {
-    const res = await fetch(`http://localhost:5000/api/spareparts/generate-code?category=${encodeURIComponent(form.value.category)}`, {
+    const res = await fetch(`/api/spareparts/generate-code?category=${encodeURIComponent(form.value.category)}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     const data = await res.json();

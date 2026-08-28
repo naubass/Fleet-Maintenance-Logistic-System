@@ -65,7 +65,7 @@ const clearDateFilter = () => {
 // Fetch List Armada untuk Dropdown
 const loadVehicles = async () => {
   try {
-    const res = await fetch('http://localhost:5000/api/vehicles', {
+    const res = await fetch('/api/vehicles', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     const result = await res.json()
