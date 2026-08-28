@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/maintenance-records';
+const API_URL = '/api/maintenance-records';
 
 const getHeaders = () => ({
   'Content-Type': 'application/json',

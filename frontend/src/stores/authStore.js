@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+const API_BASE = '/api'
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref('')
@@ -25,7 +27,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/me', {
+      const res = await fetch(`${API_BASE}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token.value}`
         }
@@ -50,32 +52,32 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const login = async (email, password) => {
-  try {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
 
-    const data = await res.json()
+      const data = await res.json()
 
-    if (res.ok && data.success) {
-      token.value = data.token || data.data?.token || ''
-      localStorage.setItem('token', token.value)
+      if (res.ok && data.success) {
+        token.value = data.token || data.data?.token || ''
+        localStorage.setItem('token', token.value)
 
-      // Ambil profil lengkap dari /api/auth/me agar role pasti terisi
-      await fetchUserProfile()
+        // Ambil profil lengkap dari /api/auth/me agar role pasti terisi
+        await fetchUserProfile()
 
-      // Kembalikan data user lengkap dengan role
-      return { success: true, user: user.value }
-    } else {
-      return { success: false, message: data.message || 'Login gagal.' }
+        // Kembalikan data user lengkap dengan role
+        return { success: true, user: user.value }
+      } else {
+        return { success: false, message: data.message || 'Login gagal.' }
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      return { success: false, message: 'Tidak dapat terhubung ke server backend.' }
     }
-  } catch (err) {
-    console.error('Login error:', err)
-    return { success: false, message: 'Tidak dapat terhubung ke server backend.' }
   }
-}
 
   const logout = () => {
     token.value = ''
@@ -84,7 +86,6 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
-  // EKSPOR SEMUA FUNGSI TERMASUK fetchUserProfile DAN updateUserData
   return { 
     user, 
     token, 

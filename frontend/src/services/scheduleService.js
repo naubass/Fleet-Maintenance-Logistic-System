@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/schedules';
+const API_URL = '/api/schedules';
 
 const getHeaders = () => ({
   'Content-Type': 'application/json',
