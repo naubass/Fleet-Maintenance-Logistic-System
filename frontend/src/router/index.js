@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import AdminLayout from '../views/AdminLayout.vue'
 import ManagerLayout from '../components/layout/ManagerLayout.vue'
@@ -26,7 +26,7 @@ const routes = [
     meta: { title: 'Masuk | RawatArmada' }
   },
   
-  // Portal Admin
+  // Portal Admin (Semua path folder view menggunakan 'Admin' huruf besar)
   {
     path: '/admin',
     component: AdminLayout,
@@ -138,7 +138,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
