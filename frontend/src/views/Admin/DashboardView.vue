@@ -43,7 +43,7 @@ const formatDate = (dateStr) => {
 const fetchDashboardStats = async () => {
   loading.value = true;
   try {
-    const res = await fetch("http://localhost:5000/api/dashboard", {
+    const res = await fetch("/api/dashboard", {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json",
