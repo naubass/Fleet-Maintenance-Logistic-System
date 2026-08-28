@@ -26,7 +26,7 @@ const routes = [
     meta: { title: 'Masuk | RawatArmada' }
   },
   
-  // Portal Admin
+  // Portal Admin (Semua path folder view menggunakan 'Admin' huruf besar)
   {
     path: '/admin',
     component: AdminLayout,
@@ -35,37 +35,37 @@ const routes = [
       { 
         path: 'dashboard', 
         name: 'dashboard', 
-        component: () => import('../views/admin/DashboardView.vue'),
+        component: () => import('../views/Admin/DashboardView.vue'),
         meta: { title: 'Dashboard Admin | RawatArmada' }
       },
       { 
         path: 'vehicles', 
         name: 'vehicles', 
-        component: () => import('../views/admin/VehiclesView.vue'),
+        component: () => import('../views/Admin/VehiclesView.vue'),
         meta: { title: 'Armada Kendaraan | RawatArmada' }
       },
       { 
         path: 'schedules', 
         name: 'schedules', 
-        component: () => import('../views/admin/SchedulesView.vue'),
+        component: () => import('../views/Admin/SchedulesView.vue'),
         meta: { title: 'Jadwal Servis Berkala | RawatArmada' }
       },
       { 
         path: 'maintenance-records', 
         name: 'maintenance-records', 
-        component: () => import('../views/admin/MaintenanceRecordsView.vue'),
+        component: () => import('../views/Admin/MaintenanceRecordsView.vue'),
         meta: { title: 'Catatan Perbaikan | RawatArmada' }
       },
       { 
         path: 'users', 
         name: 'users', 
-        component: () => import('../views/admin/UsersView.vue'),
+        component: () => import('../views/Admin/UsersView.vue'),
         meta: { title: 'Kelola Pengguna | RawatArmada' }
       },
       {
         path: 'spareparts',
         name: 'spareparts',
-        component: () => import('../views/admin/SparepartsView.vue'),
+        component: () => import('../views/Admin/SparepartsView.vue'),
         meta: { title: 'Suku Cadang & Inventaris | RawatArmada' }
       },
       {
